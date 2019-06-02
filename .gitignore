@@ -1,0 +1,14 @@
+# JetBrains IDE
+/.idea
+
+# Jupter notebook
+.ipynb_checkpoints
+
+# Original data
+/input
+
+# Work dir
+/work
+
+# Data files lying around - or laying arund? :)
+*.csv
