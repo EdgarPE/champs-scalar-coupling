@@ -217,8 +217,8 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     return result_dict
 
 
-input_dir = '../input'
-# input_dir = '../work/subsample_5000'
+# input_dir = '../input'
+input_dir = '../work/subsample_10000'
 
 # output_dir = '.'
 output_dir = '../work'
@@ -425,7 +425,7 @@ for f in ['atom_1', 'type_0', 'type']:
 
 X = train[good_columns].copy()
 y = train['scalar_coupling_constant']
-y_fc = train['fc']
+y_pso = train['pso']
 X_test = test[good_columns].copy()
 
 #del train, test
@@ -453,9 +453,9 @@ params = {'num_leaves': 128,
           'reg_lambda': 0.3,
           'colsample_bytree': 1.0
          }
-result_dict_lgb_oof = train_model_regression(X=X, X_test=X_test, y=y_fc, params=params, folds=folds, model_type='lgb', eval_metric='group_mae', plot_feature_importance=False,
+result_dict_lgb_oof = train_model_regression(X=X, X_test=X_test, y=y_pso, params=params, folds=folds, model_type='lgb', eval_metric='group_mae', plot_feature_importance=False,
                                                       verbose=500, early_stopping_rounds=200, n_estimators=1000)
 
-pred_fc = test[['id']].copy()
-pred_fc['pred_fc'] = result_dict_lgb_oof['prediction']
-pred_fc.to_csv(output_dir + '/t0_predict_fc.csv', index=False)
+pred_pso = test[['id']].copy()
+pred_pso['pred_pso'] = result_dict_lgb_oof['prediction']
+pred_pso.to_csv(output_dir + '/t0_predict_pso.csv', index=False)
