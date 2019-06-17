@@ -217,8 +217,8 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     return result_dict
 
 
-# input_dir = '../input'
-input_dir = '../work/subsample_10000'
+input_dir = '../input'
+# input_dir = '../work/subsample_10000'
 
 # output_dir = '.'
 output_dir = '../work'
