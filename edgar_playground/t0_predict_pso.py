@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+np.random.seed(55)
 pd.options.display.precision = 15
 
 from sklearn.preprocessing import LabelEncoder
@@ -34,9 +34,7 @@ def reduce_mem_usage(df, verbose=True):
                 elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
                     df[col] = df[col].astype(np.int64)
             else:
-                if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
-                    df[col] = df[col].astype(np.float16)
-                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
                     df[col] = df[col].astype(np.float32)
                 else:
                     df[col] = df[col].astype(np.float64)
@@ -238,8 +236,6 @@ print('Scalar_coupling_contributions dataset shape is now rows: {} cols:{}'.form
 sub_sampling = False
 
 if sub_sampling:
-    np.random.seed(55)  # Set seed
-
     train_mol = pd.Series(train['molecule_name'].unique()).sample(n=sub_sampling)
     test_mol = pd.Series(test['molecule_name'].unique()).sample(n=sub_sampling)
 
@@ -436,7 +432,7 @@ X_test = test[good_columns].copy()
 #############
 
 n_fold = 3
-folds = KFold(n_splits=n_fold, shuffle=True, random_state=11)
+folds = KFold(n_splits=n_fold, shuffle=True, random_state=55)
 
 params = {'num_leaves': 128,
           'min_child_samples': 79,
@@ -446,7 +442,7 @@ params = {'num_leaves': 128,
           "boosting_type": "gbdt",
           "subsample_freq": 1,
           "subsample": 0.9,
-          "bagging_seed": 11,
+          "bagging_seed": 55,
           "metric": 'mae',
           "verbosity": -1,
           'reg_alpha': 0.1,

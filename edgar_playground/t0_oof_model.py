@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import gc
 np.random.seed(55)
 pd.options.display.precision = 15
 
@@ -421,11 +422,49 @@ for f in ['atom_1', 'type_0', 'type']:
 
 X = train[good_columns].copy()
 y = train['scalar_coupling_constant']
-y_dso = train['dso']
+# y_fc = train['fc']
 X_test = test[good_columns].copy()
 
 #del train, test
 #gc.collect()
+
+#####################
+### Contributions ###
+#####################
+
+work_dir = '../work'
+
+train['oof_fc'] = pd.read_csv(work_dir + '/t0_oof_fc_train.csv')[['oof_fc']]
+train['oof_sd'] = pd.read_csv(work_dir + '/t0_oof_sd_train.csv')[['oof_sd']]
+train['oof_pso'] = pd.read_csv(work_dir + '/t0_oof_pso_train.csv')[['oof_pso']]
+train['oof_dso'] = pd.read_csv(work_dir + '/t0_oof_dso_train.csv')[['oof_dso']]
+
+test['oof_fc'] = pd.read_csv(work_dir + '/t0_oof_fc_test.csv')[['oof_fc']]
+test['oof_sd'] = pd.read_csv(work_dir + '/t0_oof_sd_test.csv')[['oof_sd']]
+test['oof_pso'] = pd.read_csv(work_dir + '/t0_oof_pso_test.csv')[['oof_pso']]
+test['oof_dso'] = pd.read_csv(work_dir + '/t0_oof_dso_test.csv')[['oof_dso']]
+
+
+def create_bunch_of_features(dtrain, dtest, cat_features):
+    n_new_features = 0
+    train_objs_num = len(dtrain)
+    df_merge = pd.concat(objs=[X, X_test], axis=0)
+
+    for feature in cat_features:
+        # Log Transform
+        df_merge[feature + '_log'] = np.log(df_merge[feature])
+        n_new_features = n_new_features + 1
+
+    dtrain = df_merge[:train_objs_num]
+    dtest = df_merge[train_objs_num:]
+    del df_merge
+    gc.collect()
+    print('Features Created: {} \nTotal Features {}'.format(n_new_features, len(dtrain.columns)))
+    return dtrain, dtest
+
+
+features = list(X.columns)
+X, X_test = create_bunch_of_features(X, X_test, features)
 
 #############
 ### Model ###
@@ -438,20 +477,35 @@ params = {'num_leaves': 128,
           'min_child_samples': 79,
           'objective': 'regression',
           'max_depth': 9,
-          'learning_rate': 0.2,
+          'learning_rate': 0.25,
           "boosting_type": "gbdt",
           "subsample_freq": 1,
           "subsample": 0.9,
-          "bagging_seed": 55,
+          "bagging_seed": 11,
           "metric": 'mae',
           "verbosity": -1,
           'reg_alpha': 0.1,
           'reg_lambda': 0.3,
           'colsample_bytree': 1.0
          }
-result_dict_lgb_oof = train_model_regression(X=X, X_test=X_test, y=y_dso, params=params, folds=folds, model_type='lgb', eval_metric='group_mae', plot_feature_importance=False,
-                                                      verbose=500, early_stopping_rounds=200, n_estimators=1000)
 
-pred_dso = test[['id']].copy()
-pred_dso['pred_dso'] = result_dict_lgb_oof['prediction']
-pred_dso.to_csv(output_dir + '/t0_predict_dso.csv', index=False)
+
+X_short = pd.DataFrame({'ind': list(X.index), 'type': X['type'].values, 'oof': [0] * len(X), 'target': y.values})
+X_short_test = pd.DataFrame({'ind': list(X_test.index), 'type': X_test['type'].values, 'prediction': [0] * len(X_test)})
+for t in X['type'].unique():
+    print(f'Training of type {t}')
+    X_t = X.loc[X['type'] == t]
+    X_test_t = X_test.loc[X_test['type'] == t]
+    y_t = X_short.loc[X_short['type'] == t, 'target']
+    result_dict_lgb3 = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=params, folds=folds,
+                                              model_type='lgb', eval_metric='group_mae', plot_feature_importance=False,
+                                              verbose=500, early_stopping_rounds=200, n_estimators=200)
+    X_short.loc[X_short['type'] == t, 'oof'] = result_dict_lgb3['oof']
+    X_short_test.loc[X_short_test['type'] == t, 'prediction'] = result_dict_lgb3['prediction']
+
+
+train['oof_scalar_coupling_constant'] = X_short['oof']
+test['scalar_coupling_constant'] = X_short_test['prediction']
+
+train[['id', 'oof_scalar_coupling_constant']].to_csv(output_dir + '/t0_oof_train.csv', index=False)
+test[['id', 'scalar_coupling_constant']].to_csv(output_dir + '/t0_oof_test.csv', index=False)
