@@ -481,7 +481,7 @@ params = {'num_leaves': 128,
           "boosting_type": "gbdt",
           "subsample_freq": 1,
           "subsample": 0.9,
-          "bagging_seed": 11,
+          "bagging_seed": 55,
           "metric": 'mae',
           "verbosity": -1,
           'reg_alpha': 0.1,
@@ -507,10 +507,9 @@ for t in np.sort(X['type'].unique()):
     y_t = X_short.loc[X_short['type'] == t, 'target']
     result_dict_lgb3 = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=params, folds=folds,
                                               model_type='lgb', eval_metric='group_mae', plot_feature_importance=False,
-                                              verbose=500, early_stopping_rounds=200, n_estimators=3000)
+                                              verbose=500, early_stopping_rounds=200, n_estimators=1000)
     X_short.loc[X_short['type'] == t, 'oof'] = result_dict_lgb3['oof']
     X_short_test.loc[X_short_test['type'] == t, 'prediction'] = result_dict_lgb3['prediction']
-
 
 train['oof_scalar_coupling_constant'] = X_short['oof']
 test['scalar_coupling_constant'] = X_short_test['prediction']
