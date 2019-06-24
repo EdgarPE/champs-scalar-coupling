@@ -217,7 +217,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
 
 
 input_dir = '../input'
-# input_dir = '../work/subsample_10000'
+# input_dir = '../work/subsample_5000'
 
 # output_dir = '.'
 output_dir = '../work'
@@ -420,14 +420,6 @@ for f in ['atom_1', 'type_0', 'type']:
         test[f] = lbl.transform(list(test[f].values))
 
 
-X = train[good_columns].copy()
-y = train['scalar_coupling_constant']
-# y_fc = train['fc']
-X_test = test[good_columns].copy()
-
-#del train, test
-#gc.collect()
-
 #####################
 ### Contributions ###
 #####################
@@ -443,6 +435,17 @@ test['oof_fc'] = pd.read_csv(work_dir + '/t0_oof_fc_test.csv')[['oof_fc']]
 test['oof_sd'] = pd.read_csv(work_dir + '/t0_oof_sd_test.csv')[['oof_sd']]
 test['oof_pso'] = pd.read_csv(work_dir + '/t0_oof_pso_test.csv')[['oof_pso']]
 test['oof_dso'] = pd.read_csv(work_dir + '/t0_oof_dso_test.csv')[['oof_dso']]
+
+good_columns = good_columns +['oof_fc', 'oof_sd', 'oof_pso', 'oof_dso']
+
+
+X = train[good_columns].copy()
+y = train['scalar_coupling_constant']
+# y_fc = train['fc']
+X_test = test[good_columns].copy()
+
+#del train, test
+#gc.collect()
 
 
 def create_bunch_of_features(dtrain, dtest, cat_features):
@@ -470,17 +473,17 @@ X, X_test = create_bunch_of_features(X, X_test, features)
 ### Model ###
 #############
 
-n_fold = 3
+n_fold = 5
 folds = KFold(n_splits=n_fold, shuffle=True, random_state=55)
 
 params = {'num_leaves': 128,
           'min_child_samples': 79,
           'objective': 'regression',
           'max_depth': 9,
-          'learning_rate': 0.25,
+          'learning_rate': 0.10,
           "boosting_type": "gbdt",
           "subsample_freq": 1,
-          "subsample": 0.9,
+          "subsample": 1,
           "bagging_seed": 55,
           "metric": 'mae',
           "verbosity": -1,
@@ -501,13 +504,19 @@ X_short_test = pd.DataFrame({
     'prediction': [0] * len(X_test)})
 
 for t in np.sort(X['type'].unique()):
-    print(f'Training of type {t}')
     X_t = X.loc[X['type'] == t]
     X_test_t = X_test.loc[X_test['type'] == t]
     y_t = X_short.loc[X_short['type'] == t, 'target']
+
+    print('Training of type %s, train size: %d' % (lbl.inverse_transform([t])[0], len(y_t)))
+
+    if t != 1:
+        print('Skip...')
+        continue
+
     result_dict_lgb3 = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=params, folds=folds,
                                               model_type='lgb', eval_metric='group_mae', plot_feature_importance=False,
-                                              verbose=500, early_stopping_rounds=200, n_estimators=1000)
+                                              verbose=500, early_stopping_rounds=200, n_estimators=10000)
     X_short.loc[X_short['type'] == t, 'oof'] = result_dict_lgb3['oof']
     X_short_test.loc[X_short_test['type'] == t, 'prediction'] = result_dict_lgb3['prediction']
 
