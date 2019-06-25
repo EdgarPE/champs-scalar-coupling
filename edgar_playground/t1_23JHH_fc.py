@@ -15,13 +15,13 @@ WORK_DIR = '../work'
 OUTPUT_DIR = '../work'
 
 # TYPE_WL = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
-TYPE_WL = ['1JHN', '2JHN', '3JHN']
+TYPE_WL = ['2JHH','3JHH']
 
 TARGET_WL = ['fc']
 
-N_FOLD = 5
+N_FOLD = 3
 
-N_ESTIMATORS = 12000
+N_ESTIMATORS = 3000
 
 SEED = 55
 np.random.seed(SEED)
@@ -42,14 +42,14 @@ np.random.seed(SEED)
 #           'colsample_bytree': 1.0
 #           }
 
-params = {'num_leaves': 128,
-          'min_child_samples': 9,
+params = {'num_leaves': 255,
+          'min_child_samples': 39,
           'objective': 'regression',
           'max_depth': 9,
-          'learning_rate': 0.1,
+          'learning_rate': 0.3,
           "boosting_type": "gbdt",
           "subsample_freq": 0,
-          "subsample": 1,
+          "subsample": 0.9,
           "bagging_seed": SEED,
           "metric": 'mae',
           "verbosity": -1,

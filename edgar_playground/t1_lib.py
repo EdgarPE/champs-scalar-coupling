@@ -364,6 +364,24 @@ def t1_create_features(train, test):
     test = create_features(test)
 
 
+def t1_to_parquet(work_dir, train, test, sub, structures, contributions):
+    train.to_parquet(f'{work_dir}/t1_train.parquet')
+    test.to_parquet(f'{work_dir}/t1_test.parquet')
+    sub.to_parquet(f'{work_dir}/t1_sub.parquet')
+    structures.to_parquet(f'{work_dir}/t1_structures.parquet')
+    contributions.to_parquet(f'{work_dir}/t1_contributions.parquet')
+
+
+def t1_read_parquet(work_dir):
+    train = pd.read_parquet(f'{work_dir}/t1_train.parquet')
+    test = pd.read_parquet(f'{work_dir}/t1_test.parquet')
+    sub = pd.read_parquet(f'{work_dir}/t1_sub.parquet')
+    structures = pd.read_parquet(f'{work_dir}/t1_structures.parquet')
+    contributions = pd.read_parquet(f'{work_dir}/t1_contributions.parquet')
+
+    return train, test, sub, structures, contributions
+
+
 def t1_prepare_columns(train, test):
 
     good_columns = [
