@@ -1,20 +1,29 @@
 import numpy as np
 import pandas as pd
-np.random.seed(55)
-pd.options.display.precision = 15
 
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import StratifiedKFold, KFold, RepeatedKFold
-import warnings
-# warnings.filterwarnings("ignore")
+##### COPY__PASTE__LIB__BEGIN #####
 
 import time
 from numba import jit
+from sklearn.preprocessing import LabelEncoder
 
 import lightgbm as lgb
 import xgboost as xgb
 from catboost import CatBoostRegressor, CatBoostClassifier
 from sklearn import metrics
+
+
+def map_atom_info(df, atom_idx, structures):
+    df = pd.merge(df, structures, how='left',
+                  left_on=['molecule_name', f'atom_index_{atom_idx}'],
+                  right_on=['molecule_name', 'atom_index'])
+
+    df = df.drop('atom_index', axis=1)
+    df = df.rename(columns={'atom': f'atom_{atom_idx}',
+                            'x': f'x_{atom_idx}',
+                            'y': f'y_{atom_idx}',
+                            'z': f'z_{atom_idx}'})
+    return df
 
 
 def reduce_mem_usage(df, verbose=True):
@@ -215,88 +224,6 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     return result_dict
 
 
-input_dir = '../input'
-# input_dir = '../work/subsample_10000'
-
-# output_dir = '.'
-output_dir = '../work'
-
-train = pd.read_csv(input_dir + '/train.csv')
-test = pd.read_csv(input_dir + '/test.csv')
-sub = pd.read_csv(input_dir + '/sample_submission.csv')
-structures = pd.read_csv(input_dir + '/structures.csv')
-contributions = pd.read_csv(input_dir + '/scalar_coupling_contributions.csv')
-
-print('Train dataset shape is now rows: {} cols:{}'.format(train.shape[0],train.shape[1]))
-print('Test dataset shape is now rows: {} cols:{}'.format(test.shape[0],test.shape[1]))
-print('Sub dataset shape is now rows: {} cols:{}'.format(sub.shape[0],sub.shape[1]))
-print('Structures dataset shape is now rows: {} cols:{}'.format(structures.shape[0],structures.shape[1]))
-print('Scalar_coupling_contributions dataset shape is now rows: {} cols:{}'.format(contributions.shape[0],
-                                                                                   contributions.shape[1]))
-sub_sampling = False
-
-if sub_sampling:
-    train_mol = pd.Series(train['molecule_name'].unique()).sample(n=sub_sampling)
-    test_mol = pd.Series(test['molecule_name'].unique()).sample(n=sub_sampling)
-
-    train = train[train['molecule_name'].isin(train_mol)]
-    test = test[test['molecule_name'].isin(test_mol)]
-    sub = sub[sub['id'].isin(test['id'])]
-    contributions = contributions[contributions['molecule_name'].isin(train_mol)]
-
-    print('Train dataset shape is now rows: {} cols:{}'.format(train.shape[0], train.shape[1]))
-    print('Test dataset shape is now rows: {} cols:{}'.format(test.shape[0], test.shape[1]))
-    print('Sub dataset shape is now rows: {} cols:{}'.format(sub.shape[0], sub.shape[1]))
-    print('Structures dataset shape is now rows: {} cols:{}'.format(structures.shape[0], structures.shape[1]))
-    print('Scalar coupling contributions dataset shape is now rows: {} cols:{}'.format(
-        contributions.shape[0],
-        contributions.shape[1]))
-
-
-train = pd.merge(train, contributions, how = 'left',
-                  left_on  = ['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
-                  right_on = ['molecule_name', 'atom_index_0', 'atom_index_1', 'type'])
-
-
-def map_atom_info(df, atom_idx):
-    df = pd.merge(df, structures, how='left',
-                  left_on=['molecule_name', f'atom_index_{atom_idx}'],
-                  right_on=['molecule_name', 'atom_index'])
-
-    df = df.drop('atom_index', axis=1)
-    df = df.rename(columns={'atom': f'atom_{atom_idx}',
-                            'x': f'x_{atom_idx}',
-                            'y': f'y_{atom_idx}',
-                            'z': f'z_{atom_idx}'})
-    return df
-
-#######################
-### Create features ###
-#######################
-
-train = map_atom_info(train, 0)
-train = map_atom_info(train, 1)
-
-test = map_atom_info(test, 0)
-test = map_atom_info(test, 1)
-
-train_p_0 = train[['x_0', 'y_0', 'z_0']].values
-train_p_1 = train[['x_1', 'y_1', 'z_1']].values
-test_p_0 = test[['x_0', 'y_0', 'z_0']].values
-test_p_1 = test[['x_1', 'y_1', 'z_1']].values
-
-train['dist'] = np.linalg.norm(train_p_0 - train_p_1, axis=1)
-test['dist'] = np.linalg.norm(test_p_0 - test_p_1, axis=1)
-train['dist_x'] = (train['x_0'] - train['x_1']) ** 2
-test['dist_x'] = (test['x_0'] - test['x_1']) ** 2
-train['dist_y'] = (train['y_0'] - train['y_1']) ** 2
-test['dist_y'] = (test['y_0'] - test['y_1']) ** 2
-train['dist_z'] = (train['z_0'] - train['z_1']) ** 2
-test['dist_z'] = (test['z_0'] - test['z_1']) ** 2
-
-train['type_0'] = train['type'].apply(lambda x: x[0])
-test['type_0'] = test['type'].apply(lambda x: x[0])
-
 def create_features(df):
     df['molecule_couples'] = df.groupby('molecule_name')['id'].transform('count')
     df['molecule_dist_mean'] = df.groupby('molecule_name')['dist'].transform('mean')
@@ -305,13 +232,15 @@ def create_features(df):
     df['atom_0_couples_count'] = df.groupby(['molecule_name', 'atom_index_0'])['id'].transform('count')
     df['atom_1_couples_count'] = df.groupby(['molecule_name', 'atom_index_1'])['id'].transform('count')
     df[f'molecule_atom_index_0_x_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['x_1'].transform('std')
+    df[f'molecule_atom_index_0_y_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('std')
+    df[f'molecule_atom_index_0_z_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['z_1'].transform('std')
+
     df[f'molecule_atom_index_0_y_1_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('mean')
     df[f'molecule_atom_index_0_y_1_mean_diff'] = df[f'molecule_atom_index_0_y_1_mean'] - df['y_1']
     df[f'molecule_atom_index_0_y_1_mean_div'] = df[f'molecule_atom_index_0_y_1_mean'] / df['y_1']
     df[f'molecule_atom_index_0_y_1_max'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('max')
     df[f'molecule_atom_index_0_y_1_max_diff'] = df[f'molecule_atom_index_0_y_1_max'] - df['y_1']
-    df[f'molecule_atom_index_0_y_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('std')
-    df[f'molecule_atom_index_0_z_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['z_1'].transform('std')
+
     df[f'molecule_atom_index_0_dist_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['dist'].transform('mean')
     df[f'molecule_atom_index_0_dist_mean_diff'] = df[f'molecule_atom_index_0_dist_mean'] - df['dist']
     df[f'molecule_atom_index_0_dist_mean_div'] = df[f'molecule_atom_index_0_dist_mean'] / df['dist']
@@ -324,6 +253,7 @@ def create_features(df):
     df[f'molecule_atom_index_0_dist_std'] = df.groupby(['molecule_name', 'atom_index_0'])['dist'].transform('std')
     df[f'molecule_atom_index_0_dist_std_diff'] = df[f'molecule_atom_index_0_dist_std'] - df['dist']
     df[f'molecule_atom_index_0_dist_std_div'] = df[f'molecule_atom_index_0_dist_std'] / df['dist']
+
     df[f'molecule_atom_index_1_dist_mean'] = df.groupby(['molecule_name', 'atom_index_1'])['dist'].transform('mean')
     df[f'molecule_atom_index_1_dist_mean_diff'] = df[f'molecule_atom_index_1_dist_mean'] - df['dist']
     df[f'molecule_atom_index_1_dist_mean_div'] = df[f'molecule_atom_index_1_dist_mean'] / df['dist']
@@ -336,14 +266,17 @@ def create_features(df):
     df[f'molecule_atom_index_1_dist_std'] = df.groupby(['molecule_name', 'atom_index_1'])['dist'].transform('std')
     df[f'molecule_atom_index_1_dist_std_diff'] = df[f'molecule_atom_index_1_dist_std'] - df['dist']
     df[f'molecule_atom_index_1_dist_std_div'] = df[f'molecule_atom_index_1_dist_std'] / df['dist']
+
     df[f'molecule_atom_1_dist_mean'] = df.groupby(['molecule_name', 'atom_1'])['dist'].transform('mean')
     df[f'molecule_atom_1_dist_min'] = df.groupby(['molecule_name', 'atom_1'])['dist'].transform('min')
     df[f'molecule_atom_1_dist_min_diff'] = df[f'molecule_atom_1_dist_min'] - df['dist']
     df[f'molecule_atom_1_dist_min_div'] = df[f'molecule_atom_1_dist_min'] / df['dist']
     df[f'molecule_atom_1_dist_std'] = df.groupby(['molecule_name', 'atom_1'])['dist'].transform('std')
     df[f'molecule_atom_1_dist_std_diff'] = df[f'molecule_atom_1_dist_std'] - df['dist']
+
     df[f'molecule_type_0_dist_std'] = df.groupby(['molecule_name', 'type_0'])['dist'].transform('std')
     df[f'molecule_type_0_dist_std_diff'] = df[f'molecule_type_0_dist_std'] - df['dist']
+
     df[f'molecule_type_dist_mean'] = df.groupby(['molecule_name', 'type'])['dist'].transform('mean')
     df[f'molecule_type_dist_mean_diff'] = df[f'molecule_type_dist_mean'] - df['dist']
     df[f'molecule_type_dist_mean_div'] = df[f'molecule_type_dist_mean'] / df['dist']
@@ -352,129 +285,155 @@ def create_features(df):
     df[f'molecule_type_dist_std'] = df.groupby(['molecule_name', 'type'])['dist'].transform('std')
     df[f'molecule_type_dist_std_diff'] = df[f'molecule_type_dist_std'] - df['dist']
     df = reduce_mem_usage(df)
+
     return df
 
 
-train = create_features(train)
-test = create_features(test)
+def t1_load_data(input_dir):
+    train = pd.read_csv(input_dir + '/train.csv')
+    test = pd.read_csv(input_dir + '/test.csv')
+    sub = pd.read_csv(input_dir + '/sample_submission.csv')
+    structures = pd.read_csv(input_dir + '/structures.csv')
+    contributions = pd.read_csv(input_dir + '/scalar_coupling_contributions.csv')
 
-good_columns = [
-    'molecule_atom_index_0_dist_min',
-    'molecule_atom_index_0_dist_max',
-    'molecule_atom_index_1_dist_min',
-    'molecule_atom_index_0_dist_mean',
-    'molecule_atom_index_0_dist_std',
-    'dist',
-    'molecule_atom_index_1_dist_std',
-    'molecule_atom_index_1_dist_max',
-    'molecule_atom_index_1_dist_mean',
-    'molecule_atom_index_0_dist_max_diff',
-    'molecule_atom_index_0_dist_max_div',
-    'molecule_atom_index_0_dist_std_diff',
-    'molecule_atom_index_0_dist_std_div',
-    'atom_0_couples_count',
-    'molecule_atom_index_0_dist_min_div',
-    'molecule_atom_index_1_dist_std_diff',
-    'molecule_atom_index_0_dist_mean_div',
-    'atom_1_couples_count',
-    'molecule_atom_index_0_dist_mean_diff',
-    'molecule_couples',
-    'atom_index_1',
-    'molecule_dist_mean',
-    'molecule_atom_index_1_dist_max_diff',
-    'molecule_atom_index_0_y_1_std',
-    'molecule_atom_index_1_dist_mean_diff',
-    'molecule_atom_index_1_dist_std_div',
-    'molecule_atom_index_1_dist_mean_div',
-    'molecule_atom_index_1_dist_min_diff',
-    'molecule_atom_index_1_dist_min_div',
-    'molecule_atom_index_1_dist_max_div',
-    'molecule_atom_index_0_z_1_std',
-    'y_0',
-    'molecule_type_dist_std_diff',
-    'molecule_atom_1_dist_min_diff',
-    'molecule_atom_index_0_x_1_std',
-    'molecule_dist_min',
-    'molecule_atom_index_0_dist_min_diff',
-    'molecule_atom_index_0_y_1_mean_diff',
-    'molecule_type_dist_min',
-    'molecule_atom_1_dist_min_div',
-    'atom_index_0',
-    'molecule_dist_max',
-    'molecule_atom_1_dist_std_diff',
-    'molecule_type_dist_max',
-    'molecule_atom_index_0_y_1_max_diff',
-    'molecule_type_0_dist_std_diff',
-    'molecule_type_dist_mean_diff',
-    'molecule_atom_1_dist_mean',
-    'molecule_atom_index_0_y_1_mean_div',
-    'molecule_type_dist_mean_div',
-    'type']
+    # dipole_moments = pd.read_csv(input_dir + '/dipole_moments.csv')
+    # magnetic_shielding_tensors = pd.read_csv(input_dir + '/magnetic_shielding_tensors.csv')
+    # mulliken_charges = pd.read_csv(input_dir + '/mulliken_charges.csv')
+    # potential_energy = pd.read_csv(input_dir + '/potential_energy.csv')
 
-for f in ['atom_1', 'type_0', 'type']:
-    if f in good_columns:
-        lbl = LabelEncoder()
-        lbl.fit(list(train[f].values) + list(test[f].values))
-        train[f] = lbl.transform(list(train[f].values))
-        test[f] = lbl.transform(list(test[f].values))
+    print('Train dataset shape is now rows: {} cols:{}'.format(train.shape[0], train.shape[1]))
+    print('Test dataset shape is now rows: {} cols:{}'.format(test.shape[0], test.shape[1]))
+    print('Sub dataset shape is now rows: {} cols:{}'.format(sub.shape[0], sub.shape[1]))
+    print('Structures dataset shape is now rows: {} cols:{}'.format(structures.shape[0], structures.shape[1]))
+    print('Scalar_coupling_contributions dataset shape is now rows: {} cols:{}'.format(contributions.shape[0],
+                                                                                       contributions.shape[1]))
+
+    return train, test, sub, structures, contributions
 
 
-X = train[good_columns].copy()
-y = train['scalar_coupling_constant']
-y_fc = train['fc']
-X_test = test[good_columns].copy()
+def t1_preprocess_data(train, test, structures, contributions):
 
-#del train, test
-#gc.collect()
+    train = pd.merge(train, contributions, how='left',
+                    left_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
+                    right_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'])
 
-#############
-### Model ###
-#############
+    # train = pd.merge(train, potential_energy, how='left',
+    #                 left_on=['molecule_name'],
+    #                 right_on=['molecule_name'])
+    #
+    # train = pd.merge(train, mulliken_charges, how='left',
+    #                 left_on=['molecule_name', 'atom_index_0'],
+    #                 right_on=['molecule_name', 'atom_index'])
+    #
+    # train = train.rename(columns={'mulliken_charge': 'mulliken_charge_0'})
+    #
+    # train = pd.merge(train, mulliken_charges, how='left',
+    #                 left_on=['molecule_name', 'atom_index_1'],
+    #                 right_on=['molecule_name', 'atom_index'])
+    #
+    # train = train.rename(columns={'mulliken_charge': 'mulliken_charge_1'})
 
-n_fold = 3
-folds = KFold(n_splits=n_fold, shuffle=True, random_state=55)
+    train = map_atom_info(train, 0, structures)
+    train = map_atom_info(train, 1, structures)
 
-params = {'num_leaves': 128,
-          'min_child_samples': 79,
-          'objective': 'regression',
-          'max_depth': 9,
-          'learning_rate': 0.2,
-          "boosting_type": "gbdt",
-          "subsample_freq": 1,
-          "subsample": 0.9,
-          "bagging_seed": 55,
-          "metric": 'mae',
-          "verbosity": -1,
-          'reg_alpha': 0.1,
-          'reg_lambda': 0.3,
-          'colsample_bytree': 1.0
-         }
+    test = map_atom_info(test, 0, structures)
+    test = map_atom_info(test, 1, structures)
 
-X_short = pd.DataFrame({
-    'ind': list(X.index),
-    'type': X['type'].values,
-    'oof': [0] * len(X),
-    'target': y_fc.values})
+    train_p_0 = train[['x_0', 'y_0', 'z_0']].values
+    train_p_1 = train[['x_1', 'y_1', 'z_1']].values
+    test_p_0 = test[['x_0', 'y_0', 'z_0']].values
+    test_p_1 = test[['x_1', 'y_1', 'z_1']].values
 
-X_short_test = pd.DataFrame({
-    'ind': list(X_test.index),
-    'type': X_test['type'].values,
-    'prediction': [0] * len(X_test)})
+    train['dist'] = np.linalg.norm(train_p_0 - train_p_1, axis=1)
+    test['dist'] = np.linalg.norm(test_p_0 - test_p_1, axis=1)
+    train['dist_x'] = (train['x_0'] - train['x_1']) ** 2
+    test['dist_x'] = (test['x_0'] - test['x_1']) ** 2
+    train['dist_y'] = (train['y_0'] - train['y_1']) ** 2
+    test['dist_y'] = (test['y_0'] - test['y_1']) ** 2
+    train['dist_z'] = (train['z_0'] - train['z_1']) ** 2
+    test['dist_z'] = (test['z_0'] - test['z_1']) ** 2
 
-for t in np.sort(X['type'].unique()):
-    print(f'Training of type {t}')
-    X_t = X.loc[X['type'] == t]
-    X_test_t = X_test.loc[X_test['type'] == t]
-    y_t = X_short.loc[X_short['type'] == t, 'target']
-    result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=params, folds=folds,
-                                              model_type='lgb', eval_metric='group_mae', plot_feature_importance=False,
-                                              verbose=500, early_stopping_rounds=200, n_estimators=10000)
-    X_short.loc[X_short['type'] == t, 'oof'] = result_dict_lgb_oof['oof']
-    X_short_test.loc[X_short_test['type'] == t, 'prediction'] = result_dict_lgb_oof['prediction']
+    train['type_0'] = train['type'].apply(lambda x: x[0])
+    test['type_0'] = test['type'].apply(lambda x: x[0])
+
+    return train, test
 
 
-train['oof_fc'] = X_short['oof']
-test['oof_fc'] = X_short_test['prediction']
+def t1_create_features(train, test):
+    train = create_features(train)
+    test = create_features(test)
 
-train[['id', 'oof_fc']].to_csv(output_dir + '/t0_oof_fc_train.csv', index=False)
-test[['id', 'oof_fc']].to_csv(output_dir + '/t0_oof_fc_test.csv', index=False)
+
+def t1_prepare_columns(train, test):
+
+    good_columns = [
+        'molecule_atom_index_0_dist_min',
+        'molecule_atom_index_0_dist_max',
+        'molecule_atom_index_1_dist_min',
+        'molecule_atom_index_0_dist_mean',
+        'molecule_atom_index_0_dist_std',
+        'dist',
+        'molecule_atom_index_1_dist_std',
+        'molecule_atom_index_1_dist_max',
+        'molecule_atom_index_1_dist_mean',
+        'molecule_atom_index_0_dist_max_diff',
+        'molecule_atom_index_0_dist_max_div',
+        'molecule_atom_index_0_dist_std_diff',
+        'molecule_atom_index_0_dist_std_div',
+        'atom_0_couples_count',
+        'molecule_atom_index_0_dist_min_div',
+        'molecule_atom_index_1_dist_std_diff',
+        'molecule_atom_index_0_dist_mean_div',
+        'atom_1_couples_count',
+        'molecule_atom_index_0_dist_mean_diff',
+        'molecule_couples',
+        'atom_index_1',
+        'molecule_dist_mean',
+        'molecule_atom_index_1_dist_max_diff',
+        'molecule_atom_index_0_y_1_std',
+        'molecule_atom_index_1_dist_mean_diff',
+        'molecule_atom_index_1_dist_std_div',
+        'molecule_atom_index_1_dist_mean_div',
+        'molecule_atom_index_1_dist_min_diff',
+        'molecule_atom_index_1_dist_min_div',
+        'molecule_atom_index_1_dist_max_div',
+        'molecule_atom_index_0_z_1_std',
+        'y_0',
+        'molecule_type_dist_std_diff',
+        'molecule_atom_1_dist_min_diff',
+        'molecule_atom_index_0_x_1_std',
+        'molecule_dist_min',
+        'molecule_atom_index_0_dist_min_diff',
+        'molecule_atom_index_0_y_1_mean_diff',
+        'molecule_type_dist_min',
+        'molecule_atom_1_dist_min_div',
+        'atom_index_0',
+        'molecule_dist_max',
+        'molecule_atom_1_dist_std_diff',
+        'molecule_type_dist_max',
+        'molecule_atom_index_0_y_1_max_diff',
+        'molecule_type_0_dist_std_diff',
+        'molecule_type_dist_mean_diff',
+        'molecule_atom_1_dist_mean',
+        'molecule_atom_index_0_y_1_mean_div',
+        'molecule_type_dist_mean_div',
+        'type',
+    ]
+
+    labels = {}
+    for f in ['atom_1', 'type_0', 'type']:
+        if f in good_columns:
+            lbl = LabelEncoder()
+            lbl.fit(list(train[f].values) + list(test[f].values))
+            train[f] = lbl.transform(list(train[f].values))
+            test[f] = lbl.transform(list(test[f].values))
+
+            labels[f] = lbl
+
+    X = train[good_columns].copy()
+    y = train['scalar_coupling_constant']
+    X_test = test[good_columns].copy()
+
+    return X, X_test, y, labels
+
+##### COPY__PASTE__LIB__END #####

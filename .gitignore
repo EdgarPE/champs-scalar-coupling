@@ -1,6 +1,9 @@
 # JetBrains IDE
 /.idea
 
+# Python cache
+__pycache__
+
 # Jupter notebook
 .ipynb_checkpoints
 
