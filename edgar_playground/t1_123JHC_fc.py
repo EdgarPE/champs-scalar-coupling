@@ -15,13 +15,13 @@ WORK_DIR = '../work'
 OUTPUT_DIR = '../work'
 
 # TYPE_WL = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
-TYPE_WL = ['2JHH','3JHH']
+TYPE_WL = ['1JHC','2JHC','3JHC']
 
 TARGET_WL = ['fc']
 
-N_FOLD = 5
+N_FOLD = 7
 
-N_ESTIMATORS = 6000
+N_ESTIMATORS = 20000
 
 SEED = 55
 np.random.seed(SEED)
@@ -43,20 +43,20 @@ np.random.seed(SEED)
 #           }
 
 params = {'num_leaves': 512,
-          'min_child_samples': 4,
+          'min_child_samples': 19,
           'objective': 'regression',
-          'max_depth': 9,
-          'learning_rate': 0.03,
+          'max_depth': 10,
+          'learning_rate': 0.02,
           "boosting_type": "gbdt",
           "subsample_freq": 1,
-          "subsample": 0.85,
-          "bagging_seed": SEED,
+          "subsample": 0.9,
+          "bagging_seed": 55,
           "metric": 'mae',
           "verbosity": -1,
           'reg_alpha': 0.1,
           'reg_lambda': 0.3,
           'colsample_bytree': 1.0
-          }
+         }
 ##### COPY__PASTE__LIB__BEGIN #####
 
 basepath = os.path.abspath(os.path.dirname(os.path.abspath(sys.argv[0])) + '/..')
