@@ -20,11 +20,14 @@ def group_mean_log_mae(y_true, y_pred, types, floor=1e-9):
 types = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
 
 err = pd.DataFrame({}, index=types)
+err_print = err.copy()
 
 y_true = pd.read_csv('../input/scalar_coupling_contributions.csv')
 y_pred = pd.read_csv('../work/t1_baseline_train.csv')
 
 for t in ['fc', 'sd', 'pso', 'dso']:
-    err[t] = ['%.3f' % e for e in group_mean_log_mae(y_true[t], y_pred[f'oof_{t}'], y_true['type'])]
+    err[t] = group_mean_log_mae(y_true[t], y_pred[f'oof_{t}'], y_true['type'])
+    err_print[t] = ['%.3f' % e for e in err[t]]
 
-print(err)
+err_print.loc['mean'] = ['%.3f' % e for e in err.mean(axis=0)]
+print(err_print)
