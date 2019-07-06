@@ -236,11 +236,46 @@ def create_features(df):
     df[f'molecule_atom_index_0_y_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('std')
     df[f'molecule_atom_index_0_z_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['z_1'].transform('std')
 
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_0_x_1_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['x_1'].transform('mean')
+    # df[f'molecule_atom_index_0_x_1_mean_diff'] = df[f'molecule_atom_index_0_x_1_mean'] - df['x_1']
+    # df[f'molecule_atom_index_0_x_1_mean_div'] = df[f'molecule_atom_index_0_x_1_mean'] / df['x_1']
+    # df[f'molecule_atom_index_0_x_1_max'] = df.groupby(['molecule_name', 'atom_index_0'])['x_1'].transform('max')
+    # df[f'molecule_atom_index_0_x_1_max_diff'] = df[f'molecule_atom_index_0_x_1_max'] - df['x_1']
+
     df[f'molecule_atom_index_0_y_1_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('mean')
     df[f'molecule_atom_index_0_y_1_mean_diff'] = df[f'molecule_atom_index_0_y_1_mean'] - df['y_1']
     df[f'molecule_atom_index_0_y_1_mean_div'] = df[f'molecule_atom_index_0_y_1_mean'] / df['y_1']
     df[f'molecule_atom_index_0_y_1_max'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('max')
     df[f'molecule_atom_index_0_y_1_max_diff'] = df[f'molecule_atom_index_0_y_1_max'] - df['y_1']
+
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_0_z_1_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['z_1'].transform('mean')
+    # df[f'molecule_atom_index_0_z_1_mean_diff'] = df[f'molecule_atom_index_0_z_1_mean'] - df['z_1']
+    # df[f'molecule_atom_index_0_z_1_mean_div'] = df[f'molecule_atom_index_0_z_1_mean'] / df['z_1']
+    # df[f'molecule_atom_index_0_z_1_max'] = df.groupby(['molecule_name', 'atom_index_0'])['z_1'].transform('max')
+    # df[f'molecule_atom_index_0_z_1_max_diff'] = df[f'molecule_atom_index_0_z_1_max'] - df['z_1']
+
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_1_x_0_mean'] = df.groupby(['molecule_name', 'atom_index_1'])['x_0'].transform('mean')
+    # df[f'molecule_atom_index_1_x_0_mean_diff'] = df[f'molecule_atom_index_1_x_0_mean'] - df['x_0']
+    # df[f'molecule_atom_index_1_x_0_mean_div'] = df[f'molecule_atom_index_1_x_0_mean'] / df['x_0']
+    # df[f'molecule_atom_index_1_x_0_max'] = df.groupby(['molecule_name', 'atom_index_1'])['x_0'].transform('max')
+    # df[f'molecule_atom_index_1_x_0_max_diff'] = df[f'molecule_atom_index_1_x_0_max'] - df['x_0']
+    #
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_1_y_0_mean'] = df.groupby(['molecule_name', 'atom_index_1'])['y_0'].transform('mean')
+    # df[f'molecule_atom_index_1_y_0_mean_diff'] = df[f'molecule_atom_index_1_y_0_mean'] - df['y_0']
+    # df[f'molecule_atom_index_1_y_0_mean_div'] = df[f'molecule_atom_index_1_y_0_mean'] / df['y_0']
+    # df[f'molecule_atom_index_1_y_0_max'] = df.groupby(['molecule_name', 'atom_index_1'])['y_0'].transform('max')
+    # df[f'molecule_atom_index_1_y_0_max_diff'] = df[f'molecule_atom_index_1_y_0_max'] - df['y_0']
+    #
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_1_z_0_mean'] = df.groupby(['molecule_name', 'atom_index_1'])['z_0'].transform('mean')
+    # df[f'molecule_atom_index_1_z_0_mean_diff'] = df[f'molecule_atom_index_1_z_0_mean'] - df['z_0']
+    # df[f'molecule_atom_index_1_z_0_mean_div'] = df[f'molecule_atom_index_1_z_0_mean'] / df['z_0']
+    # df[f'molecule_atom_index_1_z_0_max'] = df.groupby(['molecule_name', 'atom_index_1'])['z_0'].transform('max')
+    # df[f'molecule_atom_index_1_z_0_max_diff'] = df[f'molecule_atom_index_1_z_0_max'] - df['z_0']
 
     df[f'molecule_atom_index_0_dist_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['dist'].transform('mean')
     df[f'molecule_atom_index_0_dist_mean_diff'] = df[f'molecule_atom_index_0_dist_mean'] - df['dist']
@@ -306,10 +341,10 @@ def t3_load_data(input_dir):
     structures = pd.read_csv(input_dir + '/structures.csv')
     contributions = pd.read_csv(input_dir + '/scalar_coupling_contributions.csv')
 
-    # dipole_moments = pd.read_csv(input_dir + '/dipole_moments.csv')
-    # magnetic_shielding_tensors = pd.read_csv(input_dir + '/magnetic_shielding_tensors.csv')
-    # mulliken_charges = pd.read_csv(input_dir + '/mulliken_charges.csv')
-    # potential_energy = pd.read_csv(input_dir + '/potential_energy.csv')
+    dipole_moments = pd.read_csv(input_dir + '/dipole_moments.csv')
+    magnetic_st = pd.read_csv(input_dir + '/magnetic_shielding_tensors.csv')
+    mulliken_charges = pd.read_csv(input_dir + '/mulliken_charges.csv')
+    potential_energy = pd.read_csv(input_dir + '/potential_energy.csv')
 
     print('Train dataset shape is now rows: {} cols:{}'.format(train.shape[0], train.shape[1]))
     print('Test dataset shape is now rows: {} cols:{}'.format(test.shape[0], test.shape[1]))
@@ -318,30 +353,67 @@ def t3_load_data(input_dir):
     print('Scalar_coupling_contributions dataset shape is now rows: {} cols:{}'.format(contributions.shape[0],
                                                                                        contributions.shape[1]))
 
-    return train, test, sub, structures, contributions
+    return train, test, sub, structures, contributions, potential_energy, mulliken_charges, dipole_moments, magnetic_st
 
 
-def t3_preprocess_data(train, test, structures, contributions):
+def t3_preprocess_data(train, test, structures, contributions, potential_energy, mulliken_charges, dipole_moments, magnetic_st):
 
     train = pd.merge(train, contributions, how='left',
                     left_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
                     right_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'])
 
-    # train = pd.merge(train, potential_energy, how='left',
-    #                 left_on=['molecule_name'],
-    #                 right_on=['molecule_name'])
-    #
-    # train = pd.merge(train, mulliken_charges, how='left',
-    #                 left_on=['molecule_name', 'atom_index_0'],
-    #                 right_on=['molecule_name', 'atom_index'])
-    #
-    # train = train.rename(columns={'mulliken_charge': 'mulliken_charge_0'})
-    #
-    # train = pd.merge(train, mulliken_charges, how='left',
-    #                 left_on=['molecule_name', 'atom_index_1'],
-    #                 right_on=['molecule_name', 'atom_index'])
-    #
-    # train = train.rename(columns={'mulliken_charge': 'mulliken_charge_1'})
+    train = pd.merge(train, potential_energy, how='left',
+                    left_on=['molecule_name'],
+                    right_on=['molecule_name'])
+
+    train = pd.merge(train, mulliken_charges, how='left',
+                    left_on=['molecule_name', 'atom_index_0'],
+                    right_on=['molecule_name', 'atom_index'])
+    train = train.rename(columns={'mulliken_charge': 'mulliken_charge_0'})
+
+    train = pd.merge(train, mulliken_charges, how='left',
+                    left_on=['molecule_name', 'atom_index_1'],
+                    right_on=['molecule_name', 'atom_index'])
+    train = train.rename(columns={'mulliken_charge': 'mulliken_charge_1'})
+
+    train = pd.merge(train, dipole_moments, how='left',
+                    left_on=['molecule_name'],
+                    right_on=['molecule_name'])
+    train = train.rename(columns={
+        'X': 'dipole_moment_X',
+        'Y': 'dipole_moment_Y',
+        'Z': 'dipole_moment_Z',
+        })
+
+    train = pd.merge(train, magnetic_st, how='left',
+                    left_on=['molecule_name', 'atom_index_0'],
+                    right_on=['molecule_name', 'atom_index'])
+    train = train.rename(columns={
+        'XX': 'magnetic_st_0_XX',
+        'XY': 'magnetic_st_0_XY',
+        'XZ': 'magnetic_st_0_XZ',
+        'YX': 'magnetic_st_0_YX',
+        'YY': 'magnetic_st_0_YY',
+        'YZ': 'magnetic_st_0_YZ',
+        'ZX': 'magnetic_st_0_ZX',
+        'ZY': 'magnetic_st_0_ZY',
+        'ZZ': 'magnetic_st_0_ZZ',
+        })
+
+    train = pd.merge(train, magnetic_st, how='left',
+                    left_on=['molecule_name', 'atom_index_1'],
+                    right_on=['molecule_name', 'atom_index'])
+    train = train.rename(columns={
+        'XX': 'magnetic_st_1_XX',
+        'XY': 'magnetic_st_1_XY',
+        'XZ': 'magnetic_st_1_XZ',
+        'YX': 'magnetic_st_1_YX',
+        'YY': 'magnetic_st_1_YY',
+        'YZ': 'magnetic_st_1_YZ',
+        'ZX': 'magnetic_st_1_ZX',
+        'ZY': 'magnetic_st_1_ZY',
+        'ZZ': 'magnetic_st_1_ZZ',
+        })
 
     train = map_atom_info(train, 0, structures)
     train = map_atom_info(train, 1, structures)
@@ -374,12 +446,14 @@ def t3_create_features(train, test):
     create_features(test)
 
 
-def t3_to_parquet(work_dir, train, test, sub, structures, contributions):
+def t3_to_parquet(work_dir, train, test, sub, structures, contributions, potential_energy, mulliken_charges):
     train.to_parquet(f'{work_dir}/t3_train.parquet')
     test.to_parquet(f'{work_dir}/t3_test.parquet')
     sub.to_parquet(f'{work_dir}/t3_sub.parquet')
     structures.to_parquet(f'{work_dir}/t3_structures.parquet')
     contributions.to_parquet(f'{work_dir}/t3_contributions.parquet')
+    potential_energy.to_parquet(f'{work_dir}/t3_potential_energy.parquet')
+    mulliken_charges.to_parquet(f'{work_dir}/t3_mulliken_charges.parquet')
 
 
 def t3_read_parquet(work_dir):
@@ -388,8 +462,10 @@ def t3_read_parquet(work_dir):
     sub = pd.read_parquet(f'{work_dir}/t3_sub.parquet')
     structures = pd.read_parquet(f'{work_dir}/t3_structures.parquet')
     contributions = pd.read_parquet(f'{work_dir}/t3_contributions.parquet')
+    potential_energy = pd.read_parquet(f'{work_dir}/t3_potential_energy.parquet')
+    mulliken_charges = pd.read_parquet(f'{work_dir}/t3_mulliken_charges.parquet')
 
-    return train, test, sub, structures, contributions
+    return train, test, sub, structures, contributions, potential_energy, mulliken_charges
 
 
 def t3_prepare_columns(train, test):
@@ -446,6 +522,31 @@ def t3_prepare_columns(train, test):
         'molecule_atom_index_0_y_1_mean_div',
         'molecule_type_dist_mean_div',
         'type',
+
+        'potential_energy',
+        'mulliken_charge_0',
+        'mulliken_charge_1',
+        'dipole_moment_X',
+        'dipole_moment_Y',
+        'dipole_moment_Z',
+        'magnetic_st_0_XX',
+        'magnetic_st_0_XY',
+        'magnetic_st_0_XZ',
+        'magnetic_st_0_YX',
+        'magnetic_st_0_YY',
+        'magnetic_st_0_YZ',
+        'magnetic_st_0_ZX',
+        'magnetic_st_0_ZY',
+        'magnetic_st_0_ZZ',
+        'magnetic_st_1_XX',
+        'magnetic_st_1_XY',
+        'magnetic_st_1_XZ',
+        'magnetic_st_1_YX',
+        'magnetic_st_1_YY',
+        'magnetic_st_1_YZ',
+        'magnetic_st_1_ZX',
+        'magnetic_st_1_ZY',
+        'magnetic_st_1_ZZ',
     ]
 
     labels = {}

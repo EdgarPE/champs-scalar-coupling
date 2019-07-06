@@ -23,9 +23,9 @@ err = pd.DataFrame({}, index=types)
 err_print = err.copy()
 
 y_true = pd.read_csv('../input/scalar_coupling_contributions.csv')
-y_pred = pd.read_csv('../work/t1_baseline_train.csv')
+y_pred = pd.read_csv('../work/t3_baseline_train.csv')
 
-for t in ['fc', 'sd', 'pso', 'dso']:
+for t in ['fc']:
     err[t] = group_mean_log_mae(y_true[t], y_pred[f'oof_{t}'], y_true['type'])
     err_print[t] = ['%.3f' % e for e in err[t]]
 

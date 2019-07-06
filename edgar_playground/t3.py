@@ -6,7 +6,7 @@ import sys
 from sklearn.model_selection import StratifiedKFold, KFold, RepeatedKFold
 
 INPUT_DIR = '../input'
-# INPUT_DIR = '../work/subsample_10000'
+# INPUT_DIR = '../work/subsample_5000'
 
 # WORK_DIR= '.'
 WORK_DIR = '../work'
@@ -69,15 +69,66 @@ from edgar_playground.t3_lib import t3_read_parquet
 ##### COPY__PASTE__LIB__END #####
 
 
-# train, test, sub, structures, contributions = t3_load_data(INPUT_DIR)
-#
-# train, test = t3_preprocess_data(train, test, structures, contributions)
-#
-# t3_create_features(train, test)
-#
-# t3_to_parquet(WORK_DIR, train, test, sub, structures, contributions)
+train, test, sub, structures, contributions, potential_energy, mulliken_charges, dipole_moments, magnetic_st = t3_load_data(INPUT_DIR)
 
-train, test, sub, structures, contributions = t3_read_parquet(WORK_DIR)
+train, test = t3_preprocess_data(train, test, structures, contributions, potential_energy, mulliken_charges, dipole_moments, magnetic_st)
+
+train['potential_energy'] = 0       # 1JHC-fc predict \w potential_energy:      no change
+# train['mulliken_charge_0'] = 0      # 1JHC-fc predict \w mulliken_*             L1: 2.02 => 1.67
+# train['mulliken_charge_1'] = 0
+train['dipole_moment_X'] = 0        # 1JHC-fc predict \w dipole_*             no change, even worse?
+train['dipole_moment_Y'] = 0
+train['dipole_moment_Z'] = 0
+# train['magnetic_st_0_XX'] = 0         # 1JHC-fc predict \w magnetic_st_*        L1: 2.02 => 1.76
+# train['magnetic_st_0_XY'] = 0
+# train['magnetic_st_0_XZ'] = 0
+# train['magnetic_st_0_YX'] = 0
+# train['magnetic_st_0_YY'] = 0
+# train['magnetic_st_0_YZ'] = 0
+# train['magnetic_st_0_ZX'] = 0
+# train['magnetic_st_0_ZY'] = 0
+# train['magnetic_st_0_ZZ'] = 0
+# train['magnetic_st_1_XX'] = 0
+# train['magnetic_st_1_XY'] = 0
+# train['magnetic_st_1_XZ'] = 0
+# train['magnetic_st_1_YX'] = 0
+# train['magnetic_st_1_YY'] = 0
+# train['magnetic_st_1_YZ'] = 0
+# train['magnetic_st_1_ZX'] = 0
+# train['magnetic_st_1_ZY'] = 0
+# train['magnetic_st_1_ZZ'] = 0
+
+
+test['potential_energy'] = 0
+test['mulliken_charge_0'] = 0
+test['mulliken_charge_1'] = 0
+test['dipole_moment_X'] = 0
+test['dipole_moment_Y'] = 0
+test['dipole_moment_Z'] = 0
+test['magnetic_st_0_XX'] = 0
+test['magnetic_st_0_XY'] = 0
+test['magnetic_st_0_XZ'] = 0
+test['magnetic_st_0_YX'] = 0
+test['magnetic_st_0_YY'] = 0
+test['magnetic_st_0_YZ'] = 0
+test['magnetic_st_0_ZX'] = 0
+test['magnetic_st_0_ZY'] = 0
+test['magnetic_st_0_ZZ'] = 0
+test['magnetic_st_1_XX'] = 0
+test['magnetic_st_1_XY'] = 0
+test['magnetic_st_1_XZ'] = 0
+test['magnetic_st_1_YX'] = 0
+test['magnetic_st_1_YY'] = 0
+test['magnetic_st_1_YZ'] = 0
+test['magnetic_st_1_ZX'] = 0
+test['magnetic_st_1_ZY'] = 0
+test['magnetic_st_1_ZZ'] = 0
+
+t3_create_features(train, test)
+
+# t3_to_parquet(WORK_DIR, train, test, sub, structures, contributions, potential_energy, mulliken_charges)
+
+# train, test, sub, structures, contributions, potential_energy, mulliken_charges = t3_read_parquet(WORK_DIR)
 
 X, X_test, y, labels = t3_prepare_columns(train, test)
 
