@@ -5,8 +5,8 @@ import sys
 
 from sklearn.model_selection import StratifiedKFold, KFold, RepeatedKFold
 
-# INPUT_DIR = '../input'
-INPUT_DIR = '../work/subsample_5000'
+INPUT_DIR = '../input'
+# INPUT_DIR = '../work/subsample_5000'
 
 # WORK_DIR= '.'
 WORK_DIR = '../work'
@@ -76,11 +76,29 @@ train, test = t2_preprocess_data(train, test, structures, contributions)
 
 t2_create_features(train, test)
 
+# print(list(train.head().index))
+# print(list(train.tail().index))
+# print(list(test.head().index))
+# print(list(test.tail().index))
+# print('')
+#
+# print(list(train['id'].head()))
+# print(list(train['id'].tail()))
+# print(list(test['id'].head()))
+# print(list(test['id'].tail()))
+# print('')
+#
+# print(train.shape)
+# print(test.shape)
+# exit()
 
+train, test = t2_create_poly_features(train, test)
 
-t2_create_poly_features(train, test)
-
+print(train.columns)
 print(len(train.columns))
+
+print(test.columns)
+print(len(test.columns))
 
 exit()
 

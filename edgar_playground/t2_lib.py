@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import gc
+import resource
 
 ##### COPY__PASTE__LIB__BEGIN #####
 
@@ -285,7 +287,7 @@ def create_features(df):
     df[f'molecule_type_dist_std_diff'] = df[f'molecule_type_dist_std'] - df['dist']
     # df = reduce_mem_usage(df)
 
-    return df
+    # return df
 
 
 def t2_load_data(input_dir):
@@ -359,28 +361,64 @@ def t2_preprocess_data(train, test, structures, contributions):
 
 
 def t2_create_features(train, test):
-    train = create_features(train)
-    test = create_features(test)
+    create_features(train)
+    create_features(test)
 
 
 # read: https://github.com/scikit-learn/scikit-learn/issues/10404
 def t2_do_create_poly_features(df):
-    poly = PolynomialFeatures(2, include_bias=False)
-    dfp = poly.fit_transform(df.to_numpy)
-    dfp.columns = poly.get_feature_names(df.columns)
-    return dfp
+    shard_size = 10000
+
+    results = None
+    columns = None
+
+    for range_begin in range(0, df.shape[0], shard_size):
+        range_end = min((range_begin + shard_size), df.shape[0])
+        # print((range_begin, range_end))
+
+        poly = PolynomialFeatures(2, include_bias=False)
+
+        rows = poly.fit_transform(df.iloc[range_begin:range_end, :].to_numpy())
+
+        if results is None:
+            print('Result size:', (df.shape[0], rows.shape[1]))
+            results = np.zeros((df.shape[0], rows.shape[1]), dtype='float32')
+            columns = poly.get_feature_names(df.columns)
+
+        results[range_begin:range_end,:] = rows
+
+        del rows
+        gc.collect()
+        print('%.1f %%, mem usage: %d Mb' % ((range_end / results.shape[0] * 100), resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024))
+
+    df = pd.DataFrame(results)
+    df.columns = columns
+    print('Mem usage: %d Mb' % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024))
+
+    return df
 
 
 def t2_create_poly_features(train, test):
-    exclude_columns = ['id', 'molecule_name', 'atom_index_0', 'atom_index_1', 'type', 'scalar_coupling_constant', 'type_0', 'atom_0', 'atom_1']
 
-    t = train.drop(columns=exclude_columns)
+    target_columns = ['scalar_coupling_constant', 'fc', 'sd', 'pso', 'dso']
 
-    print( t.isnull().sum().sum()  )
+    exclude_columns = ['id', 'molecule_name', 'atom_index_0', 'atom_index_1', 'type', 'type_0', 'atom_0', 'atom_1']
 
+    null_columns = ['molecule_atom_index_0_x_1_std', 'molecule_atom_index_0_y_1_std', 'molecule_atom_index_0_z_1_std',
+                   'molecule_atom_index_0_y_1_mean_div', 'molecule_atom_index_0_dist_std',
+                   'molecule_atom_index_0_dist_std_diff', 'molecule_atom_index_0_dist_std_div',
+                   'molecule_atom_index_1_dist_std', 'molecule_atom_index_1_dist_std_diff',
+                   'molecule_atom_index_1_dist_std_div', 'molecule_atom_1_dist_std', 'molecule_atom_1_dist_std_diff',
+                   'molecule_type_0_dist_std', 'molecule_type_0_dist_std_diff', 'molecule_type_dist_std',
+                   'molecule_type_dist_std_diff'] # todo: why all the nulls ?
 
-    train = t2_do_create_poly_features(t)
-    # test = t2_do_create_poly_features(test)
+    poly_features = t2_do_create_poly_features(train.drop(columns=(exclude_columns + null_columns + target_columns)))
+    train = pd.concat([train[exclude_columns], train[null_columns], poly_features, train[target_columns]], axis=1)
+
+    poly_features = t2_do_create_poly_features(train.drop(columns=(exclude_columns + null_columns)))
+    test = pd.concat([test[exclude_columns], test[null_columns], poly_features], axis=1)
+
+    return train, test
 
 
 def t2_to_parquet(work_dir, train, test, sub, structures, contributions):
