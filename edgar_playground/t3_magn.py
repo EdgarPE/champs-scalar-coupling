@@ -14,11 +14,29 @@ WORK_DIR = '../work'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work'
 
-TYPE_WL = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
-# TYPE_WL = ['1JHC']
+# TYPE_WL = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
+TYPE_WL = ['1JHC']
 
-TARGET_WL = ['mulliken_charge_0', 'mulliken_charge_1']
-# TARGET_WL = ['mulliken_charge_1']
+TARGET_WL = [
+    'magnetic_st_0_XX',
+    # 'magnetic_st_0_XY',
+    # 'magnetic_st_0_XZ',
+    # 'magnetic_st_0_YX',
+    # 'magnetic_st_0_YY',
+    # 'magnetic_st_0_YZ',
+    # 'magnetic_st_0_ZX',
+    # 'magnetic_st_0_ZY',
+    # 'magnetic_st_0_ZZ',
+    # 'magnetic_st_1_XX',
+    # 'magnetic_st_1_XY',
+    # 'magnetic_st_1_XZ',
+    # 'magnetic_st_1_YX',
+    # 'magnetic_st_1_YY',
+    # 'magnetic_st_1_YZ',
+    # 'magnetic_st_1_ZX',
+    # 'magnetic_st_1_ZY',
+    # 'magnetic_st_1_ZZ',
+]
 
 SEED = 55
 np.random.seed(SEED)
@@ -30,7 +48,7 @@ N_FOLD = {
     # '3JHN': 7,
 }
 
-N_ESTIMATORS = {'_': 500}
+N_ESTIMATORS = {'_': 10000}
 
 PARAMS = {
     '_': {
@@ -174,5 +192,5 @@ for type_name in TYPE_WL:
         train.loc[train['type'] == t, f'oof_{target}'] = X_short.loc[X_short['type'] == t, 'oof']
         test.loc[test['type'] == t, f'oof_{target}'] = X_short_test.loc[X_short_test['type'] == t, 'prediction']
 
-train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t3_mull_train.csv', index=False)
-test[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t3_mull_test.csv', index=False)
+train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t3_magnetic_st_train.csv', index=False)
+test[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t3_magnetic_st_test.csv', index=False)
