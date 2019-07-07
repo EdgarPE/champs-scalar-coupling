@@ -369,17 +369,19 @@ def t3_preprocess_data(train, test, structures, contributions, potential_energy,
     train = pd.merge(train, mulliken_charges, how='left',
                     left_on=['molecule_name', 'atom_index_0'],
                     right_on=['molecule_name', 'atom_index'])
-    train = train.rename(columns={'mulliken_charge': 'mulliken_charge_0'})
+    train.drop('atom_index', axis=1, inplace=True)
+    train.rename(inplace=True, columns={'mulliken_charge': 'mulliken_charge_0'})
 
     train = pd.merge(train, mulliken_charges, how='left',
                     left_on=['molecule_name', 'atom_index_1'],
                     right_on=['molecule_name', 'atom_index'])
-    train = train.rename(columns={'mulliken_charge': 'mulliken_charge_1'})
+    train.drop('atom_index', axis=1, inplace=True)
+    train.rename(inplace=True, columns={'mulliken_charge': 'mulliken_charge_1'})
 
     train = pd.merge(train, dipole_moments, how='left',
                     left_on=['molecule_name'],
                     right_on=['molecule_name'])
-    train = train.rename(columns={
+    train.rename(inplace=True, columns={
         'X': 'dipole_moment_X',
         'Y': 'dipole_moment_Y',
         'Z': 'dipole_moment_Z',
@@ -388,7 +390,8 @@ def t3_preprocess_data(train, test, structures, contributions, potential_energy,
     train = pd.merge(train, magnetic_st, how='left',
                     left_on=['molecule_name', 'atom_index_0'],
                     right_on=['molecule_name', 'atom_index'])
-    train = train.rename(columns={
+    train.drop('atom_index', axis=1, inplace=True)
+    train.rename(inplace=True, columns={
         'XX': 'magnetic_st_0_XX',
         'XY': 'magnetic_st_0_XY',
         'XZ': 'magnetic_st_0_XZ',
@@ -403,7 +406,8 @@ def t3_preprocess_data(train, test, structures, contributions, potential_energy,
     train = pd.merge(train, magnetic_st, how='left',
                     left_on=['molecule_name', 'atom_index_1'],
                     right_on=['molecule_name', 'atom_index'])
-    train = train.rename(columns={
+    train.drop('atom_index', axis=1, inplace=True)
+    train.rename(inplace=True, columns={
         'XX': 'magnetic_st_1_XX',
         'XY': 'magnetic_st_1_XY',
         'XZ': 'magnetic_st_1_XZ',
@@ -523,30 +527,30 @@ def t3_prepare_columns(train, test):
         'molecule_type_dist_mean_div',
         'type',
 
-        'potential_energy',
-        'mulliken_charge_0',
-        'mulliken_charge_1',
-        'dipole_moment_X',
-        'dipole_moment_Y',
-        'dipole_moment_Z',
-        'magnetic_st_0_XX',
-        'magnetic_st_0_XY',
-        'magnetic_st_0_XZ',
-        'magnetic_st_0_YX',
-        'magnetic_st_0_YY',
-        'magnetic_st_0_YZ',
-        'magnetic_st_0_ZX',
-        'magnetic_st_0_ZY',
-        'magnetic_st_0_ZZ',
-        'magnetic_st_1_XX',
-        'magnetic_st_1_XY',
-        'magnetic_st_1_XZ',
-        'magnetic_st_1_YX',
-        'magnetic_st_1_YY',
-        'magnetic_st_1_YZ',
-        'magnetic_st_1_ZX',
-        'magnetic_st_1_ZY',
-        'magnetic_st_1_ZZ',
+        # 'potential_energy',
+        # 'mulliken_charge_0',
+        # 'mulliken_charge_1',
+        # 'dipole_moment_X',
+        # 'dipole_moment_Y',
+        # 'dipole_moment_Z',
+        # 'magnetic_st_0_XX',
+        # 'magnetic_st_0_XY',
+        # 'magnetic_st_0_XZ',
+        # 'magnetic_st_0_YX',
+        # 'magnetic_st_0_YY',
+        # 'magnetic_st_0_YZ',
+        # 'magnetic_st_0_ZX',
+        # 'magnetic_st_0_ZY',
+        # 'magnetic_st_0_ZZ',
+        # 'magnetic_st_1_XX',
+        # 'magnetic_st_1_XY',
+        # 'magnetic_st_1_XZ',
+        # 'magnetic_st_1_YX',
+        # 'magnetic_st_1_YY',
+        # 'magnetic_st_1_YZ',
+        # 'magnetic_st_1_ZX',
+        # 'magnetic_st_1_ZY',
+        # 'magnetic_st_1_ZZ',
     ]
 
     labels = {}
@@ -560,9 +564,8 @@ def t3_prepare_columns(train, test):
             labels[f] = lbl
 
     X = train[good_columns].copy()
-    y = train['scalar_coupling_constant']
     X_test = test[good_columns].copy()
 
-    return X, X_test, y, labels
+    return X, X_test, labels
 
 ##### COPY__PASTE__LIB__END #####
