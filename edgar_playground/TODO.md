@@ -18,6 +18,8 @@
 
 Cikk ötletek "első kaggle versenyem:
 - EDA
+- data subsampling
+- parquet
 - LightGBM és optimalizálása
 - feature generálás
 - pipline építés
