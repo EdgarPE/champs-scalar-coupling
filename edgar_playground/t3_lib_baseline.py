@@ -235,21 +235,59 @@ def create_features(df):
     df[f'molecule_atom_index_0_y_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('std')
     df[f'molecule_atom_index_0_z_1_std'] = df.groupby(['molecule_name', 'atom_index_0'])['z_1'].transform('std')
 
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_0_x_1_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['x_1'].transform('mean')
+    # df[f'molecule_atom_index_0_x_1_mean_diff'] = df[f'molecule_atom_index_0_x_1_mean'] - df['x_1']
+    # df[f'molecule_atom_index_0_x_1_mean_div'] = df[f'molecule_atom_index_0_x_1_mean'] / df['x_1']
+    # df[f'molecule_atom_index_0_x_1_max'] = df.groupby(['molecule_name', 'atom_index_0'])['x_1'].transform('max')
+    # df[f'molecule_atom_index_0_x_1_max_diff'] = df[f'molecule_atom_index_0_x_1_max'] - df['x_1']
+
     df[f'molecule_atom_index_0_y_1_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('mean')
     df[f'molecule_atom_index_0_y_1_mean_diff'] = df[f'molecule_atom_index_0_y_1_mean'] - df['y_1']
     df[f'molecule_atom_index_0_y_1_mean_div'] = df[f'molecule_atom_index_0_y_1_mean'] / df['y_1']
     df[f'molecule_atom_index_0_y_1_max'] = df.groupby(['molecule_name', 'atom_index_0'])['y_1'].transform('max')
     df[f'molecule_atom_index_0_y_1_max_diff'] = df[f'molecule_atom_index_0_y_1_max'] - df['y_1']
 
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_0_z_1_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['z_1'].transform('mean')
+    # df[f'molecule_atom_index_0_z_1_mean_diff'] = df[f'molecule_atom_index_0_z_1_mean'] - df['z_1']
+    # df[f'molecule_atom_index_0_z_1_mean_div'] = df[f'molecule_atom_index_0_z_1_mean'] / df['z_1']
+    # df[f'molecule_atom_index_0_z_1_max'] = df.groupby(['molecule_name', 'atom_index_0'])['z_1'].transform('max')
+    # df[f'molecule_atom_index_0_z_1_max_diff'] = df[f'molecule_atom_index_0_z_1_max'] - df['z_1']
+
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_1_x_0_mean'] = df.groupby(['molecule_name', 'atom_index_1'])['x_0'].transform('mean')
+    # df[f'molecule_atom_index_1_x_0_mean_diff'] = df[f'molecule_atom_index_1_x_0_mean'] - df['x_0']
+    # df[f'molecule_atom_index_1_x_0_mean_div'] = df[f'molecule_atom_index_1_x_0_mean'] / df['x_0']
+    # df[f'molecule_atom_index_1_x_0_max'] = df.groupby(['molecule_name', 'atom_index_1'])['x_0'].transform('max')
+    # df[f'molecule_atom_index_1_x_0_max_diff'] = df[f'molecule_atom_index_1_x_0_max'] - df['x_0']
+    #
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_1_y_0_mean'] = df.groupby(['molecule_name', 'atom_index_1'])['y_0'].transform('mean')
+    # df[f'molecule_atom_index_1_y_0_mean_diff'] = df[f'molecule_atom_index_1_y_0_mean'] - df['y_0']
+    # df[f'molecule_atom_index_1_y_0_mean_div'] = df[f'molecule_atom_index_1_y_0_mean'] / df['y_0']
+    # df[f'molecule_atom_index_1_y_0_max'] = df.groupby(['molecule_name', 'atom_index_1'])['y_0'].transform('max')
+    # df[f'molecule_atom_index_1_y_0_max_diff'] = df[f'molecule_atom_index_1_y_0_max'] - df['y_0']
+    #
+    # Hiányzó, de nem lesz jobb
+    # df[f'molecule_atom_index_1_z_0_mean'] = df.groupby(['molecule_name', 'atom_index_1'])['z_0'].transform('mean')
+    # df[f'molecule_atom_index_1_z_0_mean_diff'] = df[f'molecule_atom_index_1_z_0_mean'] - df['z_0']
+    # df[f'molecule_atom_index_1_z_0_mean_div'] = df[f'molecule_atom_index_1_z_0_mean'] / df['z_0']
+    # df[f'molecule_atom_index_1_z_0_max'] = df.groupby(['molecule_name', 'atom_index_1'])['z_0'].transform('max')
+    # df[f'molecule_atom_index_1_z_0_max_diff'] = df[f'molecule_atom_index_1_z_0_max'] - df['z_0']
+
     df[f'molecule_atom_index_0_dist_mean'] = df.groupby(['molecule_name', 'atom_index_0'])['dist'].transform('mean')
     df[f'molecule_atom_index_0_dist_mean_diff'] = df[f'molecule_atom_index_0_dist_mean'] - df['dist']
     df[f'molecule_atom_index_0_dist_mean_div'] = df[f'molecule_atom_index_0_dist_mean'] / df['dist']
+
     df[f'molecule_atom_index_0_dist_max'] = df.groupby(['molecule_name', 'atom_index_0'])['dist'].transform('max')
     df[f'molecule_atom_index_0_dist_max_diff'] = df[f'molecule_atom_index_0_dist_max'] - df['dist']
     df[f'molecule_atom_index_0_dist_max_div'] = df[f'molecule_atom_index_0_dist_max'] / df['dist']
+
     df[f'molecule_atom_index_0_dist_min'] = df.groupby(['molecule_name', 'atom_index_0'])['dist'].transform('min')
     df[f'molecule_atom_index_0_dist_min_diff'] = df[f'molecule_atom_index_0_dist_min'] - df['dist']
     df[f'molecule_atom_index_0_dist_min_div'] = df[f'molecule_atom_index_0_dist_min'] / df['dist']
+
     df[f'molecule_atom_index_0_dist_std'] = df.groupby(['molecule_name', 'atom_index_0'])['dist'].transform('std')
     df[f'molecule_atom_index_0_dist_std_diff'] = df[f'molecule_atom_index_0_dist_std'] - df['dist']
     df[f'molecule_atom_index_0_dist_std_div'] = df[f'molecule_atom_index_0_dist_std'] / df['dist']
@@ -257,20 +295,25 @@ def create_features(df):
     df[f'molecule_atom_index_1_dist_mean'] = df.groupby(['molecule_name', 'atom_index_1'])['dist'].transform('mean')
     df[f'molecule_atom_index_1_dist_mean_diff'] = df[f'molecule_atom_index_1_dist_mean'] - df['dist']
     df[f'molecule_atom_index_1_dist_mean_div'] = df[f'molecule_atom_index_1_dist_mean'] / df['dist']
+
     df[f'molecule_atom_index_1_dist_max'] = df.groupby(['molecule_name', 'atom_index_1'])['dist'].transform('max')
     df[f'molecule_atom_index_1_dist_max_diff'] = df[f'molecule_atom_index_1_dist_max'] - df['dist']
     df[f'molecule_atom_index_1_dist_max_div'] = df[f'molecule_atom_index_1_dist_max'] / df['dist']
+
     df[f'molecule_atom_index_1_dist_min'] = df.groupby(['molecule_name', 'atom_index_1'])['dist'].transform('min')
     df[f'molecule_atom_index_1_dist_min_diff'] = df[f'molecule_atom_index_1_dist_min'] - df['dist']
     df[f'molecule_atom_index_1_dist_min_div'] = df[f'molecule_atom_index_1_dist_min'] / df['dist']
+
     df[f'molecule_atom_index_1_dist_std'] = df.groupby(['molecule_name', 'atom_index_1'])['dist'].transform('std')
     df[f'molecule_atom_index_1_dist_std_diff'] = df[f'molecule_atom_index_1_dist_std'] - df['dist']
     df[f'molecule_atom_index_1_dist_std_div'] = df[f'molecule_atom_index_1_dist_std'] / df['dist']
 
     df[f'molecule_atom_1_dist_mean'] = df.groupby(['molecule_name', 'atom_1'])['dist'].transform('mean')
+
     df[f'molecule_atom_1_dist_min'] = df.groupby(['molecule_name', 'atom_1'])['dist'].transform('min')
     df[f'molecule_atom_1_dist_min_diff'] = df[f'molecule_atom_1_dist_min'] - df['dist']
     df[f'molecule_atom_1_dist_min_div'] = df[f'molecule_atom_1_dist_min'] / df['dist']
+
     df[f'molecule_atom_1_dist_std'] = df.groupby(['molecule_name', 'atom_1'])['dist'].transform('std')
     df[f'molecule_atom_1_dist_std_diff'] = df[f'molecule_atom_1_dist_std'] - df['dist']
 
@@ -280,13 +323,14 @@ def create_features(df):
     df[f'molecule_type_dist_mean'] = df.groupby(['molecule_name', 'type'])['dist'].transform('mean')
     df[f'molecule_type_dist_mean_diff'] = df[f'molecule_type_dist_mean'] - df['dist']
     df[f'molecule_type_dist_mean_div'] = df[f'molecule_type_dist_mean'] / df['dist']
+
     df[f'molecule_type_dist_max'] = df.groupby(['molecule_name', 'type'])['dist'].transform('max')
     df[f'molecule_type_dist_min'] = df.groupby(['molecule_name', 'type'])['dist'].transform('min')
     df[f'molecule_type_dist_std'] = df.groupby(['molecule_name', 'type'])['dist'].transform('std')
     df[f'molecule_type_dist_std_diff'] = df[f'molecule_type_dist_std'] - df['dist']
     # df = reduce_mem_usage(df)
 
-    return df
+    # return df
 
 
 def t3_load_data(input_dir):
@@ -297,8 +341,8 @@ def t3_load_data(input_dir):
     contributions = pd.read_csv(input_dir + '/scalar_coupling_contributions.csv')
 
     # dipole_moments = pd.read_csv(input_dir + '/dipole_moments.csv')
-    # magnetic_shielding_tensors = pd.read_csv(input_dir + '/magnetic_shielding_tensors.csv')
-    # mulliken_charges = pd.read_csv(input_dir + '/mulliken_charges.csv')
+    # magnetic_st = pd.read_csv(input_dir + '/magnetic_shielding_tensors.csv')
+    mulliken_charges = pd.read_csv(input_dir + '/mulliken_charges.csv')
     # potential_energy = pd.read_csv(input_dir + '/potential_energy.csv')
 
     print('Train dataset shape is now rows: {} cols:{}'.format(train.shape[0], train.shape[1]))
@@ -308,10 +352,10 @@ def t3_load_data(input_dir):
     print('Scalar_coupling_contributions dataset shape is now rows: {} cols:{}'.format(contributions.shape[0],
                                                                                        contributions.shape[1]))
 
-    return train, test, sub, structures, contributions
+    return train, test, sub, structures, contributions, mulliken_charges
 
 
-def t3_preprocess_data(train, test, structures, contributions):
+def t3_preprocess_data(train, test, structures, contributions, mulliken_charges):
 
     train = pd.merge(train, contributions, how='left',
                     left_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
@@ -320,18 +364,108 @@ def t3_preprocess_data(train, test, structures, contributions):
     # train = pd.merge(train, potential_energy, how='left',
     #                 left_on=['molecule_name'],
     #                 right_on=['molecule_name'])
-    #
-    # train = pd.merge(train, mulliken_charges, how='left',
-    #                 left_on=['molecule_name', 'atom_index_0'],
-    #                 right_on=['molecule_name', 'atom_index'])
-    #
-    # train = train.rename(columns={'mulliken_charge': 'mulliken_charge_0'})
-    #
+
+    train = pd.merge(train, mulliken_charges, how='left',
+                    left_on=['molecule_name', 'atom_index_0'],
+                    right_on=['molecule_name', 'atom_index'])
+    train.drop('atom_index', axis=1, inplace=True)
+    # train.rename(inplace=True, columns={'mulliken_charge': 'mulliken_charge_0'})
+
     # train = pd.merge(train, mulliken_charges, how='left',
     #                 left_on=['molecule_name', 'atom_index_1'],
     #                 right_on=['molecule_name', 'atom_index'])
-    #
-    # train = train.rename(columns={'mulliken_charge': 'mulliken_charge_1'})
+    # train.drop('atom_index', axis=1, inplace=True)
+    # train.rename(inplace=True, columns={'mulliken_charge': 'mulliken_charge_1'})
+
+    # electronegativity and atomic_radius
+    # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
+
+    # from tqdm import tqdm_notebook as tqdm
+    atomic_radius = {'H': 0.38, 'C': 0.77, 'N': 0.75, 'O': 0.73, 'F': 0.71}  # Without fudge factor
+
+    fudge_factor = 0.05
+    atomic_radius = {k: v + fudge_factor for k, v in atomic_radius.items()}
+    # print(atomic_radius)
+
+    electronegativity = {'H': 2.2, 'C': 2.55, 'N': 3.04, 'O': 3.44, 'F': 3.98}
+
+    # structures = pd.read_csv(structures, dtype={'atom_index':np.int8})
+
+    atoms = structures['atom'].values
+    atoms_en = [electronegativity[x] for x in atoms]
+    atoms_rad = [atomic_radius[x] for x in atoms]
+
+    structures['EN'] = atoms_en
+    structures['rad'] = atoms_rad
+
+    # print(structures.head())
+
+    i_atom = structures['atom_index'].values
+    p = structures[['x', 'y', 'z']].values
+    p_compare = p
+    m = structures['molecule_name'].values
+    m_compare = m
+    r = structures['rad'].values
+    r_compare = r
+
+    source_row = np.arange(len(structures))
+    max_atoms = 28
+
+    bonds = np.zeros((len(structures) + 1, max_atoms + 1), dtype=np.int8)
+    bond_dists = np.zeros((len(structures) + 1, max_atoms + 1), dtype=np.float32)
+
+    print('Calculating bonds')
+
+    for i in range(max_atoms - 1):
+        p_compare = np.roll(p_compare, -1, axis=0)
+        m_compare = np.roll(m_compare, -1, axis=0)
+        r_compare = np.roll(r_compare, -1, axis=0)
+
+        mask = np.where(m == m_compare, 1, 0)  # Are we still comparing atoms in the same molecule?
+        dists = np.linalg.norm(p - p_compare, axis=1) * mask
+        r_bond = r + r_compare
+
+        bond = np.where(np.logical_and(dists > 0.0001, dists < r_bond), 1, 0)
+
+        source_row = source_row
+        target_row = source_row + i + 1  # Note: Will be out of bounds of bonds array for some values of i
+        target_row = np.where(np.logical_or(target_row > len(structures), mask == 0), len(structures),
+                              target_row)  # If invalid target, write to dummy row
+
+        source_atom = i_atom
+        target_atom = i_atom + i + 1  # Note: Will be out of bounds of bonds array for some values of i
+        target_atom = np.where(np.logical_or(target_atom > max_atoms, mask == 0), max_atoms,
+                               target_atom)  # If invalid target, write to dummy col
+
+        bonds[(source_row, target_atom)] = bond
+        bonds[(target_row, source_atom)] = bond
+        bond_dists[(source_row, target_atom)] = dists
+        bond_dists[(target_row, source_atom)] = dists
+
+    bonds = np.delete(bonds, axis=0, obj=-1)  # Delete dummy row
+    bonds = np.delete(bonds, axis=1, obj=-1)  # Delete dummy col
+    bond_dists = np.delete(bond_dists, axis=0, obj=-1)  # Delete dummy row
+    bond_dists = np.delete(bond_dists, axis=1, obj=-1)  # Delete dummy col
+
+    print('Counting and condensing bonds')
+
+    bonds_numeric = [[i for i, x in enumerate(row) if x] for row in bonds]
+    bond_lengths = [[dist for i, dist in enumerate(row) if i in bonds_numeric[j]] for j, row in
+                    enumerate(bond_dists)]
+    bond_lengths_mean = [np.mean(x) for x in bond_lengths]
+    bond_lengths_median = [np.median(x) for x in bond_lengths]
+    bond_lengths_std = [np.std(x) for x in bond_lengths]
+    n_bonds = [len(x) for x in bonds_numeric]
+
+    # bond_data = {'bond_' + str(i):col for i, col in enumerate(np.transpose(bonds))}
+    # bond_data.update({'bonds_numeric':bonds_numeric, 'n_bonds':n_bonds})
+
+    bond_data = {'n_bonds': n_bonds, 'bond_lengths_mean': bond_lengths_mean,
+                 'bond_lengths_std': bond_lengths_std, 'bond_lengths_median': bond_lengths_median}
+    bond_df = pd.DataFrame(bond_data)
+    structures = structures.join(bond_df)
+    # print(structures.head(20))
+
 
     train = map_atom_info(train, 0, structures)
     train = map_atom_info(train, 1, structures)
@@ -346,6 +480,8 @@ def t3_preprocess_data(train, test, structures, contributions):
 
     train['dist'] = np.linalg.norm(train_p_0 - train_p_1, axis=1)
     test['dist'] = np.linalg.norm(test_p_0 - test_p_1, axis=1)
+    train['dist'] = 1 / (train['dist'] ** 3) # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
+    test['dist'] = 1 / (test['dist'] ** 3)
     train['dist_x'] = (train['x_0'] - train['x_1']) ** 2
     test['dist_x'] = (test['x_0'] - test['x_1']) ** 2
     train['dist_y'] = (train['y_0'] - train['y_1']) ** 2
@@ -356,20 +492,21 @@ def t3_preprocess_data(train, test, structures, contributions):
     train['type_0'] = train['type'].apply(lambda x: x[0])
     test['type_0'] = test['type'].apply(lambda x: x[0])
 
-    return train, test
+    return train, test, structures
 
 
 def t3_create_features(train, test):
-    train = create_features(train)
-    test = create_features(test)
+    create_features(train)
+    create_features(test)
 
 
-def t3_to_parquet(work_dir, train, test, sub, structures, contributions):
+def t3_to_parquet(work_dir, train, test, sub, structures, contributions, mulliken_charges):
     train.to_parquet(f'{work_dir}/t3_train.parquet')
     test.to_parquet(f'{work_dir}/t3_test.parquet')
     sub.to_parquet(f'{work_dir}/t3_sub.parquet')
     structures.to_parquet(f'{work_dir}/t3_structures.parquet')
     contributions.to_parquet(f'{work_dir}/t3_contributions.parquet')
+    mulliken_charges.to_parquet(f'{work_dir}/t3_mulliken_charges.parquet')
 
 
 def t3_read_parquet(work_dir):
@@ -378,13 +515,19 @@ def t3_read_parquet(work_dir):
     sub = pd.read_parquet(f'{work_dir}/t3_sub.parquet')
     structures = pd.read_parquet(f'{work_dir}/t3_structures.parquet')
     contributions = pd.read_parquet(f'{work_dir}/t3_contributions.parquet')
+    mulliken_charges = pd.read_parquet(f'{work_dir}/t3_mulliken_charges.parquet')
 
-    return train, test, sub, structures, contributions
+    return train, test, sub, structures, contributions, mulliken_charges
 
 
 def t3_prepare_columns(train, test, good_columns_extra=None):
 
     good_columns = [
+        'bond_lengths_mean_y',
+        'bond_lengths_median_y',
+        'bond_lengths_std_y',
+        'bond_lengths_mean_x',
+
         'molecule_atom_index_0_dist_min',
         'molecule_atom_index_0_dist_max',
         'molecule_atom_index_1_dist_min',
@@ -451,9 +594,8 @@ def t3_prepare_columns(train, test, good_columns_extra=None):
             labels[f] = lbl
 
     X = train[good_columns].copy()
-    y = train['scalar_coupling_constant']
     X_test = test[good_columns].copy()
 
-    return X, X_test, y, labels
+    return X, X_test, labels
 
 ##### COPY__PASTE__LIB__END #####

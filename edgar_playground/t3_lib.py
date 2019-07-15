@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import gc
-import resource
 
 ##### COPY__PASTE__LIB__BEGIN #####
 
@@ -13,6 +11,7 @@ import lightgbm as lgb
 import xgboost as xgb
 from catboost import CatBoostRegressor, CatBoostClassifier
 from sklearn import metrics
+
 
 def map_atom_info(df, atom_idx, structures):
     df = pd.merge(df, structures, how='left',

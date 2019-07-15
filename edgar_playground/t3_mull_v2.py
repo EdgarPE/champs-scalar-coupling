@@ -12,10 +12,11 @@ INPUT_DIR = '../input'
 WORK_DIR = '../work'
 
 # OUTPUT_DIR = '.'
-OUTPUT_DIR = '../work'
+OUTPUT_DIR = '../work/tmp'
 
-TYPE_WL = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
-# TYPE_WL = ['1JHN']
+# TYPE_WL = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
+TYPE_WL = ['1JHC','2JHC','3JHC', '1JHN','2JHN','3JHN','2JHH','3JHH']
+# TYPE_WL = ['1JHC']
 
 TARGET_WL = ['mulliken_charge']
 
@@ -29,7 +30,7 @@ N_FOLD = {
     # '3JHN': 7,
 }
 
-N_ESTIMATORS = {'_': 500}
+N_ESTIMATORS = {'_': 2000}
 
 PARAMS = {
     '_': {
@@ -74,7 +75,7 @@ train, test = t3_preprocess_data(train, test, structures, mulliken_charges)
 
 t3_create_features(train, test)
 
-# t3_to_parquet(WORK_DIR, train, test, sub, structures, contributions, potential_energy, mulliken_charges)
+# t3_to_parquet(WORK_DIR, train, test, sub, structures, contributions, mulliken_charges)
 
 # train, test, sub, structures, contributions, potential_energy, mulliken_charges = t3_read_parquet(WORK_DIR)
 

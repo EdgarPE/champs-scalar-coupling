@@ -14,7 +14,7 @@ WORK_DIR = '../work'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work'
 
-TYPE_WL = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
+TYPE_WL = ['1JHC','2JHC','3JHC','1JHN','2JHN','3JHN','2JHH','3JHH']
 # TYPE_WL = ['1JHC','2JHC','3JHC']
 
 TARGET_WL = ['fc', 'sd', 'pso', 'dso']
@@ -24,9 +24,9 @@ SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 3,
+    '_': 5,
     # '_': 7,
-    '1JHC': 5,
+    '1JHC': 7,
     # '2JHC': 3,
     # '3JHC': 3,
 }
@@ -73,19 +73,18 @@ from edgar_playground.t3_lib_baseline import t3_read_parquet
 ##### COPY__PASTE__LIB__END #####
 
 
-train, test, sub, structures, contributions = t3_load_data(INPUT_DIR)
-
-train, test = t3_preprocess_data(train, test, structures, contributions)
-
-t3_create_features(train, test)
-
-# t3_to_parquet(WORK_DIR, train, test, sub, structures, contributions)
+# train, test, sub, structures, contributions, mulliken_charges = t3_load_data(INPUT_DIR)
 #
-# train, test, sub, structures, contributions = t3_read_parquet(WORK_DIR)
+# train, test, structures = t3_preprocess_data(train, test, structures, contributions, mulliken_charges)
+#
+# t3_create_features(train, test)
+#
+# t3_to_parquet(WORK_DIR, train, test, sub, structures, contributions, mulliken_charges)
+
+train, test, sub, structures, contributions, mulliken_charges = t3_read_parquet(WORK_DIR)
 
 ##### MULLIKEN #####
 
-# mulliken_charges = pd.read_csv(INPUT_DIR + '/mulliken_charges.csv')
 mulliken_charges = pd.read_csv(WORK_DIR + '/t3_mull_v2_train.csv')
 train = pd.merge(train, mulliken_charges, how='left',
                  left_on=['molecule_name', 'atom_index_0'],
@@ -115,7 +114,7 @@ test.rename(inplace=True, columns={'oof_mulliken_charge_median': 'mulliken_charg
 
 ##### /MULLIKEN #####
 
-X, X_test, y, labels = t3_prepare_columns(train, test, good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1'])
+X, X_test, labels = t3_prepare_columns(train, test, good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1'])
 
 for type_name in TYPE_WL:
     for target in TARGET_WL:
