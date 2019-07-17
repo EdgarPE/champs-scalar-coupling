@@ -12,7 +12,7 @@ INPUT_DIR = '../input'
 WORK_DIR = '../work'
 
 # OUTPUT_DIR = '.'
-OUTPUT_DIR = '../work/tmp'
+OUTPUT_DIR = '../work'
 
 # TYPE_WL = ['1JHN','2JHN','3JHN','2JHH','3JHH','1JHC','2JHC','3JHC']
 TYPE_WL = ['1JHC','2JHC','3JHC', '1JHN','2JHN','3JHN','2JHH','3JHH']
@@ -24,13 +24,13 @@ SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 3,
-    # '1JHN': 7,
+    '_': 7,
+    '1JHN': 5,
     # '2JHN': 7,
     # '3JHN': 7,
 }
 
-N_ESTIMATORS = {'_': 2000}
+N_ESTIMATORS = {'_': 16000}
 
 PARAMS = {
     '_': {
@@ -71,7 +71,7 @@ from edgar_playground.t3_lib_mull_v2 import t3_read_parquet
 
 train, test, structures, mulliken_charges = t3_load_data(INPUT_DIR)
 
-train, test = t3_preprocess_data(train, test, structures, mulliken_charges)
+train, test, structures = t3_preprocess_data(train, test, structures, mulliken_charges)
 
 t3_create_features(train, test)
 

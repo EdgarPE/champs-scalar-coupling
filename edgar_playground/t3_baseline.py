@@ -25,15 +25,12 @@ np.random.seed(SEED)
 
 N_FOLD = {
     '_': 5,
-    # '_': 7,
-    '1JHC': 7,
-    # '2JHC': 3,
-    # '3JHC': 3,
+    # '1JHC': 5,
 }
 
 N_ESTIMATORS = {
-    '_': 3000,
-    '1JHC': 4000,
+    '_': 4000,
+    # '1JHC': 20000,
 }
 
 PARAMS = {
