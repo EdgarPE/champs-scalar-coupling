@@ -20,7 +20,7 @@ WORK_DIR = '../work/t4'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t4'
 
-TYPE_WL = ['1JHC','2JHC','3JHC','1JHN','2JHN','3JHN','2JHH','3JHH']
+TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
 # TYPE_WL = ['1JHC']
 
 TARGET_WL = ['fc', 'sd', 'pso', 'dso']
@@ -34,7 +34,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 200,
+    '_': 400,
     # '1JHC': 20000,
 }
 
@@ -59,7 +59,6 @@ PARAMS = {
     '2JHN': {'subsample': 1, 'learning_rate': 0.05},
     '3JHN': {'subsample': 1, 'learning_rate': 0.05},
 }
-
 
 train, test, structures, contributions = t4_load_data(INPUT_DIR)
 

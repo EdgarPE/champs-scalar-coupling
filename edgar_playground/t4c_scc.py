@@ -20,7 +20,7 @@ WORK_DIR = '../work/t4'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t4'
 
-TYPE_WL = ['1JHC','2JHC','3JHC','1JHN','2JHN','3JHN','2JHH','3JHH']
+TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
 # TYPE_WL = ['1JHC']
 
 TARGET_WL = ['scalar_coupling_constant']
@@ -34,7 +34,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 200,
+    '_': 400,
     # '1JHC': 20000,
 }
 
@@ -60,7 +60,6 @@ PARAMS = {
     '3JHN': {'subsample': 1, 'learning_rate': 0.05},
 }
 
-
 train, test, structures, contributions = t4_load_data(INPUT_DIR)
 
 structures = t4_merge_yukawa(INPUT_DIR, structures)
@@ -83,10 +82,10 @@ train, test = t4_load_data_contributions_oof(WORK_DIR, train, test)
 # Predict final target (Scalar coupling constant)
 #
 X, X_test, labels = t4_prepare_columns(train, test,
-                                          good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1', 'fc', 'sd',
-                                                              'pso', 'dso'])
+                                       good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1', 'fc', 'sd',
+                                                           'pso', 'dso'])
 t4_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
 
 train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4c_scc_train.csv', index=False)
-test.rename(inplace=True, columns={'oof_scalar_coupling_constant': 'scalar_coupling_constant',})
+test.rename(inplace=True, columns={'oof_scalar_coupling_constant': 'scalar_coupling_constant'})
 test[['id'] + [f'{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4c_scc_test.csv', index=False)

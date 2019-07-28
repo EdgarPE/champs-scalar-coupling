@@ -28,7 +28,7 @@ def map_atom_info(df, atom_idx, structures):
 
 
 def reduce_mem_usage(df, verbose=True):
-    start_mem = df.memory_usage().sum() / 1024**2
+    start_mem = df.memory_usage().sum() / 1024 ** 2
     for col in df.columns:
         col_type = df[col].dtypes
         if str(col_type)[:3] == 'int' or str(col_type)[:5] == 'float':
@@ -48,8 +48,9 @@ def reduce_mem_usage(df, verbose=True):
                     df[col] = df[col].astype(np.float32)
                 else:
                     df[col] = df[col].astype(np.float64)
-    end_mem = df.memory_usage().sum() / 1024**2
-    if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (start_mem - end_mem) / start_mem))
+    end_mem = df.memory_usage().sum() / 1024 ** 2
+    if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (
+                start_mem - end_mem) / start_mem))
     return df
 
 
@@ -83,7 +84,7 @@ def group_mean_log_mae(y_true, y_pred, types, floor=1e-9):
     Fast metric computation for this competition: https://www.kaggle.com/c/champs-scalar-coupling
     Code is from this kernel: https://www.kaggle.com/uberkinder/efficient-metric
     """
-    maes = (y_true-y_pred).abs().groupby(types).mean()
+    maes = (y_true - y_pred).abs().groupby(types).mean()
     return np.log(maes.map(lambda x: max(x, floor))).mean()
 
 
@@ -371,7 +372,6 @@ def t4_load_data_mulliken(input_dir):
 
 
 def t4_load_data_mulliken_oof(work_dir, train, test):
-
     mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_train.csv')
     train = pd.merge(train, mulliken_charges, how='left',
                      left_on=['molecule_name', 'atom_index_0'],
@@ -402,7 +402,6 @@ def t4_load_data_mulliken_oof(work_dir, train, test):
 
 
 def t4_load_data_contributions_oof(work_dir, train, test):
-
     train.drop(columns=['fc', 'sd', 'pso', 'dso'], inplace=True)
 
     oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_train.csv')
@@ -438,14 +437,13 @@ def t4_preprocess_add_flip_data(df):
 
 
 def t4_preprocess_data(train, test, structures, contributions, add_flip=False):
-
     if add_flip:
         train = t4_preprocess_add_flip_data(train)
         test = t4_preprocess_add_flip_data(test)
 
     train = pd.merge(train, contributions, how='left',
-                    left_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
-                    right_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'])
+                     left_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
+                     right_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'])
 
     # electronegativity and atomic_radius
     # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
@@ -536,7 +534,6 @@ def t4_preprocess_data(train, test, structures, contributions, add_flip=False):
     structures = structures.join(bond_df)
     # print(structures.head(20))
 
-
     train = map_atom_info(train, 0, structures)
     train = map_atom_info(train, 1, structures)
 
@@ -550,7 +547,7 @@ def t4_preprocess_data(train, test, structures, contributions, add_flip=False):
 
     train['dist'] = np.linalg.norm(train_p_0 - train_p_1, axis=1)
     test['dist'] = np.linalg.norm(test_p_0 - test_p_1, axis=1)
-    train['dist'] = 1 / (train['dist'] ** 3) # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
+    train['dist'] = 1 / (train['dist'] ** 3)  # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
     test['dist'] = 1 / (test['dist'] ** 3)
     train['dist_x'] = (train['x_0'] - train['x_1']) ** 2
     test['dist_x'] = (test['x_0'] - test['x_1']) ** 2
@@ -566,14 +563,13 @@ def t4_preprocess_data(train, test, structures, contributions, add_flip=False):
 
 
 def t4_preprocess_data_mulliken(train, mulliken_charges):
-
     # train = pd.merge(train, potential_energy, how='left',
     #                 left_on=['molecule_name'],
     #                 right_on=['molecule_name'])
 
     train = pd.merge(train, mulliken_charges, how='left',
-                    left_on=['molecule_name', 'atom_index_0'],
-                    right_on=['molecule_name', 'atom_index'])
+                     left_on=['molecule_name', 'atom_index_0'],
+                     right_on=['molecule_name', 'atom_index'])
     train.drop('atom_index', axis=1, inplace=True)
     # train.rename(inplace=True, columns={'mulliken_charge': 'mulliken_charge_0'})
 
@@ -610,7 +606,6 @@ def t4_read_parquet(work_dir):
 
 
 def t4_prepare_columns(train, test, good_columns_extra=None):
-
     good_columns = [
         'bond_lengths_mean_y',
         'bond_lengths_median_y',
