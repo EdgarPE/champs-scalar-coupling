@@ -31,7 +31,7 @@ N_FOLD = {
     # '3JHN': 7,
 }
 
-N_ESTIMATORS = {'_': 8000}
+N_ESTIMATORS = {'_': 16000}
 
 PARAMS = {
     '_': {
