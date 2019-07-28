@@ -3,6 +3,14 @@ import pandas as pd
 import os
 import sys
 
+##### COPY__PASTE__LIB__BEGIN #####
+
+basepath = os.path.abspath(os.path.dirname(os.path.abspath(sys.argv[0])) + '/..')
+sys.path.append(basepath)
+from edgar_playground.t4_lib import *
+
+##### COPY__PASTE__LIB__END #####
+
 INPUT_DIR = '../input'
 # INPUT_DIR = '../work/subsample_5000'
 
@@ -51,26 +59,6 @@ PARAMS = {
     '2JHN': {'subsample': 1, 'learning_rate': 0.05},
     '3JHN': {'subsample': 1, 'learning_rate': 0.05},
 }
-
-
-##### COPY__PASTE__LIB__BEGIN #####
-
-basepath = os.path.abspath(os.path.dirname(os.path.abspath(sys.argv[0])) + '/..')
-sys.path.append(basepath)
-
-from edgar_playground.t4_lib import train_model_regression
-from edgar_playground.t4_lib import t4_load_data
-from edgar_playground.t4_lib import t4_load_data_mulliken
-from edgar_playground.t4_lib import t4_preprocess_data
-from edgar_playground.t4_lib import t4_preprocess_data_mulliken
-from edgar_playground.t4_lib import t4_create_features
-from edgar_playground.t4_lib import t4_prepare_columns
-from edgar_playground.t4_lib import t4_to_parquet
-from edgar_playground.t4_lib import t4_read_parquet
-from edgar_playground.t4_lib import t4_do_predict
-
-##### COPY__PASTE__LIB__END #####
-
 
 train, test, structures, contributions = t4_load_data(INPUT_DIR)
 
