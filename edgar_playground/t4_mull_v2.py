@@ -26,7 +26,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 1000,
+    '_': 200,
     # '1JHC': 20000,
 }
 
@@ -73,15 +73,21 @@ from edgar_playground.t4_lib import t4_do_predict
 
 
 train, test, structures, contributions = t4_load_data(INPUT_DIR)
-mulliken_charges = t4_load_data_mulliken(INPUT_DIR)
 
-train, test, structures = t4_preprocess_data(train, test, structures, contributions)
-train = t4_preprocess_data_mulliken(train, mulliken_charges)
+train, test, structures = t4_preprocess_data(train, test, structures, contributions) #TODO: flip ?
 
 t4_create_features(train, test)
 
-X, X_test, labels = t4_prepare_columns(train, test)
+#
+# Load Mulliken charge target
+#
+mulliken_charges = t4_load_data_mulliken(INPUT_DIR)
+train = t4_preprocess_data_mulliken(train, mulliken_charges)
 
+#
+# Predict Mulliken charge
+#
+X, X_test, labels = t4_prepare_columns(train, test)
 t4_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
 
 # TODO: mean VS. median, melyik jobb? t3-man már megvannak az adatok

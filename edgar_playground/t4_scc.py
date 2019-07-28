@@ -26,7 +26,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 1000,
+    '_': 200,
     # '1JHC': 20000,
 }
 
@@ -73,18 +73,26 @@ from edgar_playground.t4_lib import t4_do_predict
 
 train, test, structures, contributions = t4_load_data(INPUT_DIR)
 
-train, test = t4_load_data_mulliken_oof(WORK_DIR, train, test)
-
 train, test, structures = t4_preprocess_data(train, test, structures, contributions)
-
-train, test = t4_load_data_contributions_oof(WORK_DIR, train, test)
 
 t4_create_features(train, test)
 
+#
+# Load Phase 1. OOF data Mulliken charge
+#
+train, test = t4_load_data_mulliken_oof(WORK_DIR, train, test)
+
+#
+# Load Phase 2. OOF data Contributions (fc, sd, pso, dso)
+#
+train, test = t4_load_data_contributions_oof(WORK_DIR, train, test)
+
+#
+# Predict final target (Scalar coupling constant)
+#
 X, X_test, labels = t4_prepare_columns(train, test,
                                           good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1', 'fc', 'sd',
                                                               'pso', 'dso'])
-
 t4_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
 
 train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4_scc_train.csv', index=False)
