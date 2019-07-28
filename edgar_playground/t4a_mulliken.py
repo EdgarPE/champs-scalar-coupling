@@ -62,6 +62,8 @@ PARAMS = {
 
 train, test, structures, contributions = t4_load_data(INPUT_DIR)
 
+structures = t4_merge_yukawa(INPUT_DIR, structures)
+
 train, test, structures = t4_preprocess_data(train, test, structures, contributions) #TODO: flip ?
 
 t4_create_features(train, test)
@@ -81,8 +83,8 @@ t4_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEE
 # TODO: mean VS. median, melyik jobb? t3-man már megvannak az adatok
 train = train[['molecule_name', 'atom_index_0', 'oof_mulliken_charge']].rename(columns={'atom_index_0': 'atom_index'})
 median = train.groupby(['molecule_name', 'atom_index'])[['oof_mulliken_charge']].median()
-median.to_csv(f'{OUTPUT_DIR}/t4_mull_v2_train.csv', index=True)
+median.to_csv(f'{OUTPUT_DIR}/t4a_mulliken_train.csv', index=True)
 
 test = test[['molecule_name', 'atom_index_0', 'oof_mulliken_charge']].rename(columns={'atom_index_0': 'atom_index'})
 median = test.groupby(['molecule_name', 'atom_index'])[['oof_mulliken_charge']].median()
-median.to_csv(f'{OUTPUT_DIR}/t4_mull_v2_test.csv', index=True)
+median.to_csv(f'{OUTPUT_DIR}/t4a_mulliken_test.csv', index=True)

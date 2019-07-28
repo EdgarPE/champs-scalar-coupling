@@ -63,6 +63,8 @@ PARAMS = {
 
 train, test, structures, contributions = t4_load_data(INPUT_DIR)
 
+structures = t4_merge_yukawa(INPUT_DIR, structures)
+
 train, test, structures = t4_preprocess_data(train, test, structures, contributions)
 
 t4_create_features(train, test)
@@ -85,6 +87,6 @@ X, X_test, labels = t4_prepare_columns(train, test,
                                                               'pso', 'dso'])
 t4_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
 
-train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4_scc_train.csv', index=False)
+train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4c_scc_train.csv', index=False)
 test.rename(inplace=True, columns={'oof_scalar_coupling_constant': 'scalar_coupling_constant',})
-test[['id'] + [f'{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4_scc_test.csv', index=False)
+test[['id'] + [f'{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4c_scc_test.csv', index=False)

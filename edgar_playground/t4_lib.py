@@ -350,6 +350,17 @@ def t4_load_data(input_dir):
     return train, test, structures, contributions
 
 
+# https://www.kaggle.com/scaomath/parallelization-of-coulomb-yukawa-interaction
+def t4_merge_yukawa(input_dir, structures):
+    yukawa = pd.read_csv(input_dir + '/yukawa/structures_yukawa.csv')
+    structures = pd.concat([structures, yukawa], axis=1)
+    del yukawa
+    print('Merge Yukawa. Structures dataset shape is now rows: {} cols:{}'.format(structures.shape[0],
+                                                                                  structures.shape[1]))
+
+    return structures
+
+
 def t4_load_data_mulliken(input_dir):
     # dipole_moments = pd.read_csv(input_dir + '/dipole_moments.csv')
     # magnetic_st = pd.read_csv(input_dir + '/magnetic_shielding_tensors.csv')
@@ -361,7 +372,7 @@ def t4_load_data_mulliken(input_dir):
 
 def t4_load_data_mulliken_oof(work_dir, train, test):
 
-    mulliken_charges = pd.read_csv(work_dir + '/t4_mull_v2_train.csv')
+    mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_train.csv')
     train = pd.merge(train, mulliken_charges, how='left',
                      left_on=['molecule_name', 'atom_index_0'],
                      right_on=['molecule_name', 'atom_index'])
@@ -374,7 +385,7 @@ def t4_load_data_mulliken_oof(work_dir, train, test):
     train.drop('atom_index', axis=1, inplace=True)
     train.rename(inplace=True, columns={'oof_mulliken_charge': 'mulliken_charge_1'})
 
-    mulliken_charges = pd.read_csv(work_dir + '/t4_mull_v2_test.csv')
+    mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_test.csv')
     test = pd.merge(test, mulliken_charges, how='left',
                     left_on=['molecule_name', 'atom_index_0'],
                     right_on=['molecule_name', 'atom_index'])
@@ -394,7 +405,7 @@ def t4_load_data_contributions_oof(work_dir, train, test):
 
     train.drop(columns=['fc', 'sd', 'pso', 'dso'], inplace=True)
 
-    oof_contributions = pd.read_csv(work_dir + '/t4_baseline_mull_train.csv')
+    oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_train.csv')
     train = pd.merge(train, oof_contributions, how='left',
                      left_on=['id'],
                      right_on=['id'])
@@ -405,7 +416,7 @@ def t4_load_data_contributions_oof(work_dir, train, test):
         'oof_dso': 'dso',
     })
 
-    oof_contributions = pd.read_csv(work_dir + '/t4_baseline_mull_test.csv')
+    oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_test.csv')
     test = pd.merge(test, oof_contributions, how='left',
                     left_on=['id'],
                     right_on=['id'])
@@ -657,6 +668,17 @@ def t4_prepare_columns(train, test, good_columns_extra=None):
         'molecule_atom_index_0_y_1_mean_div',
         'molecule_type_dist_mean_div',
         'type',
+
+        # Yukawa, todo: rename '_x' and '_y' to something meeningful
+        'dist_C_0_x', 'dist_C_1_x', 'dist_C_2_x', 'dist_C_3_x', 'dist_C_4_x', 'dist_F_0_x', 'dist_F_1_x', 'dist_F_2_x',
+        'dist_F_3_x', 'dist_F_4_x', 'dist_H_0_x', 'dist_H_1_x', 'dist_H_2_x', 'dist_H_3_x', 'dist_H_4_x', 'dist_N_0_x',
+        'dist_N_1_x', 'dist_N_2_x', 'dist_N_3_x', 'dist_N_4_x', 'dist_O_0_x', 'dist_O_1_x', 'dist_O_2_x', 'dist_O_3_x',
+        'dist_O_4_x',
+
+        'dist_C_0_y', 'dist_C_1_y', 'dist_C_2_y', 'dist_C_3_y', 'dist_C_4_y', 'dist_F_0_y', 'dist_F_1_y', 'dist_F_2_y',
+        'dist_F_3_y', 'dist_F_4_y', 'dist_H_0_y', 'dist_H_1_y', 'dist_H_2_y', 'dist_H_3_y', 'dist_H_4_y', 'dist_N_0_y',
+        'dist_N_1_y', 'dist_N_2_y', 'dist_N_3_y', 'dist_N_4_y', 'dist_O_0_y', 'dist_O_1_y', 'dist_O_2_y', 'dist_O_3_y',
+        'dist_O_4_y',
     ]
 
     good_columns += (good_columns_extra if good_columns_extra is not None else [])
