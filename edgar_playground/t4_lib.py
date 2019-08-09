@@ -12,12 +12,14 @@ import lightgbm as lgb
 import xgboost as xgb
 from catboost import CatBoostRegressor, CatBoostClassifier
 from sklearn import metrics
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def map_atom_info(df, atom_idx, structures):
     df = pd.merge(df, structures, how='left',
                   left_on=['molecule_name', f'atom_index_{atom_idx}'],
-                  right_on=['molecule_name', 'atom_index'])
+                  right_on=['molecule_name', 'atom_index'], suffixes=["_a0", "_a1"])
 
     df = df.drop('atom_index', axis=1)
     df = df.rename(columns={'atom': f'atom_{atom_idx}',
@@ -104,6 +106,9 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     :params: columns - columns to use. If None - use all columns
     :params: plot_feature_importance - whether to plot feature importance of LGB
     :params: model - sklearn model, works only for "sklearn" model type
+    :params: verbose - parameters for gradient boosting models
+    :params: early_stopping_rounds - parameters for gradient boosting models
+    :params: n_estimators - parameters for gradient boosting models
 
     """
     columns = X.columns if columns is None else columns
@@ -142,6 +147,9 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
         else:
             X_train, X_valid = X[columns].iloc[train_index], X[columns].iloc[valid_index]
             y_train, y_valid = y.iloc[train_index], y.iloc[valid_index]
+
+        print(X_train.shape)
+        print(list(X_train.columns))
 
         if model_type == 'lgb':
             model = lgb.LGBMRegressor(**params, n_estimators=n_estimators, n_jobs=-1)
@@ -217,18 +225,23 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
 
             best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
 
-            # plt.figure(figsize=(16, 12));
-            # sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False));
-            # plt.title('LGB Features (avg over folds)');
+            plt.figure(figsize=(16, 12))
+            sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False));
+            plt.title('LGB Features (avg over folds)')
+            plt.savefig('/tmp/importance.png')
+            # plt.show()
 
             result_dict['feature_importance'] = feature_importance
 
     return result_dict
 
 
-def create_features(df):
+def t4_artgor_features_do_add(df):
+    """
+    https://www.kaggle.com/artgor/using-meta-features-to-improve-model
+    """
+
     df['molecule_couples'] = df.groupby('molecule_name')['id'].transform('count')
-    print(list(df.columns))
     df['molecule_dist_mean'] = df.groupby('molecule_name')['dist'].transform('mean')
     df['molecule_dist_min'] = df.groupby('molecule_name')['dist'].transform('min')
     df['molecule_dist_max'] = df.groupby('molecule_name')['dist'].transform('max')
@@ -331,9 +344,13 @@ def create_features(df):
     df[f'molecule_type_dist_min'] = df.groupby(['molecule_name', 'type'])['dist'].transform('min')
     df[f'molecule_type_dist_std'] = df.groupby(['molecule_name', 'type'])['dist'].transform('std')
     df[f'molecule_type_dist_std_diff'] = df[f'molecule_type_dist_std'] - df['dist']
-    # df = reduce_mem_usage(df)
 
-    # return df
+    reduce_mem_usage(df)
+
+
+def t4_artgor_features(train, test):
+    t4_artgor_features_do_add(train)
+    t4_artgor_features_do_add(test)
 
 
 def t4_load_data(input_dir):
@@ -398,12 +415,21 @@ def t4_load_data_mulliken_oof(work_dir, train, test):
     test.drop('atom_index', axis=1, inplace=True)
     test.rename(inplace=True, columns={'oof_mulliken_charge': 'mulliken_charge_1'})
 
+    reduce_mem_usage(train)
+    reduce_mem_usage(test)
+
     return train, test
 
 
-def t4_load_data_contributions_oof(work_dir, train, test):
-    train.drop(columns=['fc', 'sd', 'pso', 'dso'], inplace=True)
+def t4_merge_contributions(train, contributions):
+    train = pd.merge(train, contributions, how='left',
+                     left_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
+                     right_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'])
 
+    return train
+
+
+def t4_load_data_contributions_oof(work_dir, train, test):
     oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_train.csv')
     train = pd.merge(train, oof_contributions, how='left',
                      left_on=['id'],
@@ -426,6 +452,9 @@ def t4_load_data_contributions_oof(work_dir, train, test):
         'oof_dso': 'dso',
     })
 
+    reduce_mem_usage(train)
+    reduce_mem_usage(test)
+
     return train, test
 
 
@@ -436,18 +465,12 @@ def t4_preprocess_add_flip_data(df):
     return pd.concat([df, dfc])
 
 
-def t4_preprocess_data(train, test, structures, contributions, add_flip=False):
-    if add_flip:
-        train = t4_preprocess_add_flip_data(train)
-        test = t4_preprocess_add_flip_data(test)
-
-    train = pd.merge(train, contributions, how='left',
-                     left_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
-                     right_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'])
+def t4_crane_features(structures):
+    """
+    https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
+    """
 
     # electronegativity and atomic_radius
-    # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
-
     # from tqdm import tqdm_notebook as tqdm
     atomic_radius = {'H': 0.38, 'C': 0.77, 'N': 0.75, 'O': 0.73, 'F': 0.71}  # Without fudge factor
 
@@ -534,6 +557,15 @@ def t4_preprocess_data(train, test, structures, contributions, add_flip=False):
     structures = structures.join(bond_df)
     # print(structures.head(20))
 
+    return structures
+
+
+def t4_merge_structures(train, test, structures, add_flip=False):
+
+    if add_flip:
+        train = t4_preprocess_add_flip_data(train)
+        test = t4_preprocess_add_flip_data(test)
+
     train = map_atom_info(train, 0, structures)
     train = map_atom_info(train, 1, structures)
 
@@ -559,7 +591,31 @@ def t4_preprocess_data(train, test, structures, contributions, add_flip=False):
     train['type_0'] = train['type'].apply(lambda x: x[0])
     test['type_0'] = test['type'].apply(lambda x: x[0])
 
-    return train, test, structures
+    return train, test
+
+
+def t4_distance_feature(train, test):
+
+    train_p_0 = train[['x_0', 'y_0', 'z_0']].values
+    train_p_1 = train[['x_1', 'y_1', 'z_1']].values
+    test_p_0 = test[['x_0', 'y_0', 'z_0']].values
+    test_p_1 = test[['x_1', 'y_1', 'z_1']].values
+
+    train['dist'] = np.linalg.norm(train_p_0 - train_p_1, axis=1)
+    test['dist'] = np.linalg.norm(test_p_0 - test_p_1, axis=1)
+    train['dist'] = 1 / (train['dist'] ** 3)  # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
+    test['dist'] = 1 / (test['dist'] ** 3)
+    train['dist_x'] = (train['x_0'] - train['x_1']) ** 2
+    test['dist_x'] = (test['x_0'] - test['x_1']) ** 2
+    train['dist_y'] = (train['y_0'] - train['y_1']) ** 2
+    test['dist_y'] = (test['y_0'] - test['y_1']) ** 2
+    train['dist_z'] = (train['z_0'] - train['z_1']) ** 2
+    test['dist_z'] = (test['z_0'] - test['z_1']) ** 2
+
+    train['type_0'] = train['type'].apply(lambda x: x[0])
+    test['type_0'] = test['type'].apply(lambda x: x[0])
+
+    # return train, test
 
 
 def t4_preprocess_data_mulliken(train, mulliken_charges):
@@ -582,11 +638,6 @@ def t4_preprocess_data_mulliken(train, mulliken_charges):
     return train
 
 
-def t4_create_features(train, test):
-    create_features(train)
-    create_features(test)
-
-
 def t4_to_parquet(work_dir, train, test, structures, contributions, mulliken_charges):
     train.to_parquet(f'{work_dir}/t4_train.parquet')
     test.to_parquet(f'{work_dir}/t4_test.parquet')
@@ -607,10 +658,10 @@ def t4_read_parquet(work_dir):
 
 def t4_prepare_columns(train, test, good_columns_extra=None):
     good_columns = [
-        'bond_lengths_mean_y',
-        'bond_lengths_median_y',
-        'bond_lengths_std_y',
-        'bond_lengths_mean_x',
+        # 'bond_lengths_mean_y',
+        # 'bond_lengths_median_y',
+        # 'bond_lengths_std_y',
+        # 'bond_lengths_mean_x',
 
         'molecule_atom_index_0_dist_min',
         'molecule_atom_index_0_dist_max',
@@ -664,16 +715,17 @@ def t4_prepare_columns(train, test, good_columns_extra=None):
         'molecule_type_dist_mean_div',
         'type',
 
-        # Yukawa, todo: rename '_x' and '_y' to something meeningful
-        'dist_C_0_x', 'dist_C_1_x', 'dist_C_2_x', 'dist_C_3_x', 'dist_C_4_x', 'dist_F_0_x', 'dist_F_1_x', 'dist_F_2_x',
-        'dist_F_3_x', 'dist_F_4_x', 'dist_H_0_x', 'dist_H_1_x', 'dist_H_2_x', 'dist_H_3_x', 'dist_H_4_x', 'dist_N_0_x',
-        'dist_N_1_x', 'dist_N_2_x', 'dist_N_3_x', 'dist_N_4_x', 'dist_O_0_x', 'dist_O_1_x', 'dist_O_2_x', 'dist_O_3_x',
-        'dist_O_4_x',
+        'dist_C_0_a0', 'dist_C_1_a0', 'dist_C_2_a0', 'dist_C_3_a0', 'dist_C_4_a0', 'dist_F_0_a0', 'dist_F_1_a0',
+        'dist_F_2_a0', 'dist_F_3_a0', 'dist_F_4_a0', 'dist_H_0_a0', 'dist_H_1_a0', 'dist_H_2_a0', 'dist_H_3_a0',
+        'dist_H_4_a0', 'dist_N_0_a0', 'dist_N_1_a0', 'dist_N_2_a0', 'dist_N_3_a0', 'dist_N_4_a0', 'dist_O_0_a0',
+        'dist_O_1_a0', 'dist_O_2_a0', 'dist_O_3_a0', 'dist_O_4_a0',
+        'EN_a0', 'rad_a0', 'n_bonds_a0', 'bond_lengths_mean_a0', 'bond_lengths_std_a0', 'bond_lengths_median_a0',
 
-        'dist_C_0_y', 'dist_C_1_y', 'dist_C_2_y', 'dist_C_3_y', 'dist_C_4_y', 'dist_F_0_y', 'dist_F_1_y', 'dist_F_2_y',
-        'dist_F_3_y', 'dist_F_4_y', 'dist_H_0_y', 'dist_H_1_y', 'dist_H_2_y', 'dist_H_3_y', 'dist_H_4_y', 'dist_N_0_y',
-        'dist_N_1_y', 'dist_N_2_y', 'dist_N_3_y', 'dist_N_4_y', 'dist_O_0_y', 'dist_O_1_y', 'dist_O_2_y', 'dist_O_3_y',
-        'dist_O_4_y',
+        'dist_C_0_a1', 'dist_C_1_a1', 'dist_C_2_a1', 'dist_C_3_a1', 'dist_C_4_a1', 'dist_F_0_a1', 'dist_F_1_a1',
+        'dist_F_2_a1', 'dist_F_3_a1', 'dist_F_4_a1', 'dist_H_0_a1', 'dist_H_1_a1', 'dist_H_2_a1', 'dist_H_3_a1',
+        'dist_H_4_a1', 'dist_N_0_a1', 'dist_N_1_a1', 'dist_N_2_a1', 'dist_N_3_a1', 'dist_N_4_a1', 'dist_O_0_a1',
+        'dist_O_1_a1', 'dist_O_2_a1', 'dist_O_3_a1', 'dist_O_4_a1',
+        'EN_a1', 'rad_a1', 'n_bonds_a1', 'bond_lengths_mean_a1', 'bond_lengths_std_a1', 'bond_lengths_median_a1',
     ]
 
     good_columns += (good_columns_extra if good_columns_extra is not None else [])
@@ -725,7 +777,7 @@ def t4_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
 
             result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
                                                          model_type='lgb', eval_metric='group_mae',
-                                                         plot_feature_importance=False,
+                                                         plot_feature_importance=True,
                                                          verbose=100, early_stopping_rounds=200,
                                                          n_estimators=_N_ESTIMATORS)
 

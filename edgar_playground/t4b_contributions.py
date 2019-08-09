@@ -15,25 +15,26 @@ INPUT_DIR = '../input'
 # INPUT_DIR = '../work/subsample_5000'
 
 # WORK_DIR= '.'
-WORK_DIR = '../work/t4'
+WORK_DIR = '../work/t4_play'
 
 # OUTPUT_DIR = '.'
-OUTPUT_DIR = '../work/t4'
+OUTPUT_DIR = '../work/t4_play'
 
 TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
 # TYPE_WL = ['1JHC']
 
 TARGET_WL = ['fc', 'sd', 'pso', 'dso']
+# TARGET_WL = ['fc']
 
 SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 5,
+    '_': 3,
 }
 
 N_ESTIMATORS = {
-    '_': 12000,
+    '_': 1000,
 }
 
 PARAMS = {
@@ -62,14 +63,23 @@ train, test, structures, contributions = t4_load_data(INPUT_DIR)
 
 structures = t4_merge_yukawa(INPUT_DIR, structures)
 
-train, test, structures = t4_preprocess_data(train, test, structures, contributions)
+structures = t4_crane_features(structures)
 
-t4_create_features(train, test)
+train, test = t4_merge_structures(train, test, structures)
+
+t4_distance_feature(train, test)
+
+t4_artgor_features(train, test)
 
 #
 # Load Phase 1. OOF data Mulliken charge
 #
 train, test = t4_load_data_mulliken_oof(WORK_DIR, train, test)
+
+#
+# Merge contributions fact data
+#
+train = t4_merge_contributions(train, contributions)
 
 #
 # Predict contributions
