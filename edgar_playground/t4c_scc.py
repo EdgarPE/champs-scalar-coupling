@@ -15,13 +15,13 @@ INPUT_DIR = '../input'
 # INPUT_DIR = '../work/subsample_5000'
 
 # WORK_DIR= '.'
-WORK_DIR = '../work/t4_play'
+WORK_DIR = '../work/t4'
 
 # OUTPUT_DIR = '.'
-OUTPUT_DIR = '../work/t4_play'
+OUTPUT_DIR = '../work/t4'
 
-TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-# TYPE_WL = ['1JHC']
+# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+TYPE_WL = ['2JHC']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -30,19 +30,24 @@ np.random.seed(SEED)
 
 N_FOLD = {
     '_': 3,
+    '1JHN': 5,
 }
 
 N_ESTIMATORS = {
-    '_': 1000
+    '_': 2000,
+    '1JHC': 6000,
+    '2JHC': 4000,
+    '3JHC': 6000,
+    '1JHN': 6000,
 }
 
 PARAMS = {
     '_': {
         'num_leaves': 128,
-        'min_child_samples': 9,
+        'min_child_samples': 79,
         'objective': 'regression',
         'max_depth': 9,
-        'learning_rate': 0.1,
+        'learning_rate': 0.2,
         "boosting_type": "gbdt",
         "subsample_freq": 1,
         "subsample": 0.9,
@@ -53,22 +58,34 @@ PARAMS = {
         'reg_lambda': 0.3,
         'colsample_bytree': 1.0
     },
-    '1JHN': {'subsample': 1, 'learning_rate': 0.05},
+    '1JHN': {'subsample': 1, 'learning_rate': 0.05, 'min_child_samples': 5},
     '2JHN': {'subsample': 1, 'learning_rate': 0.05},
     '3JHN': {'subsample': 1, 'learning_rate': 0.05},
+    '1JHC': {'min_child_samples': 120},
+    '2JHC': {'min_child_samples': 500, 'learning_rate': 0.2, 'num_leaves': 500, 'max_depth': 11},
+
 }
 
-train, test, structures, contributions = t4_load_data(INPUT_DIR)
+# train, test, structures, contributions = t4_load_data(INPUT_DIR)
+#
+# train, test = t4_criskiev_features(train, test, structures)
+#
+# structures = t4_merge_yukawa(INPUT_DIR, structures)
+#
+# structures = t4_crane_features(structures)
+#
+# train, test = t4_merge_structures(train, test, structures)
+#
+# t4_distance_feature(train, test)
+#
+# t4_artgor_features(train, test)
 
-structures = t4_merge_yukawa(INPUT_DIR, structures)
+#
+# Save to and/or load from parquet
+#
+# t4_to_parquet(WORK_DIR, train, test, structures, contributions)
 
-structures = t4_crane_features(structures)
-
-train, test = t4_merge_structures(train, test, structures)
-
-t4_distance_feature(train, test)
-
-t4_artgor_features(train, test)
+train, test, structures, contributions = t4_read_parquet(WORK_DIR)
 
 #
 # Load Phase 1. OOF data Mulliken charge
@@ -80,9 +97,16 @@ train, test = t4_load_data_mulliken_oof(WORK_DIR, train, test)
 #
 train, test = t4_load_data_contributions_oof(WORK_DIR, train, test)
 
+# t4_criskiev_features_extra(train, test)
+
 #
 # Predict final target (Scalar coupling constant)
 #
+
+# pd.set_option('display.max_rows', 200)
+# print(train.describe().T) # Verbose=True
+# print(train.dtypes.T)
+
 X, X_test, labels = t4_prepare_columns(train, test,
                                        good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1', 'fc', 'sd',
                                                            'pso', 'dso'])

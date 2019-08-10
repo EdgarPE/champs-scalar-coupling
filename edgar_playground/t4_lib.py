@@ -52,7 +52,7 @@ def reduce_mem_usage(df, verbose=True):
                     df[col] = df[col].astype(np.float64)
     end_mem = df.memory_usage().sum() / 1024 ** 2
     if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (
-                start_mem - end_mem) / start_mem))
+            start_mem - end_mem) / start_mem))
     return df
 
 
@@ -111,6 +111,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     :params: n_estimators - parameters for gradient boosting models
 
     """
+
     columns = X.columns if columns is None else columns
     X_test = X_test[columns]
 
@@ -147,9 +148,6 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
         else:
             X_train, X_valid = X[columns].iloc[train_index], X[columns].iloc[valid_index]
             y_train, y_valid = y.iloc[train_index], y.iloc[valid_index]
-
-        print(X_train.shape)
-        print(list(X_train.columns))
 
         if model_type == 'lgb':
             model = lgb.LGBMRegressor(**params, n_estimators=n_estimators, n_jobs=-1)
@@ -561,7 +559,6 @@ def t4_crane_features(structures):
 
 
 def t4_merge_structures(train, test, structures, add_flip=False):
-
     if add_flip:
         train = t4_preprocess_add_flip_data(train)
         test = t4_preprocess_add_flip_data(test)
@@ -595,7 +592,6 @@ def t4_merge_structures(train, test, structures, add_flip=False):
 
 
 def t4_distance_feature(train, test):
-
     train_p_0 = train[['x_0', 'y_0', 'z_0']].values
     train_p_1 = train[['x_1', 'y_1', 'z_1']].values
     test_p_0 = test[['x_0', 'y_0', 'z_0']].values
@@ -636,24 +632,6 @@ def t4_preprocess_data_mulliken(train, mulliken_charges):
     # train.rename(inplace=True, columns={'mulliken_charge': 'mulliken_charge_1'})
 
     return train
-
-
-def t4_to_parquet(work_dir, train, test, structures, contributions, mulliken_charges):
-    train.to_parquet(f'{work_dir}/t4_train.parquet')
-    test.to_parquet(f'{work_dir}/t4_test.parquet')
-    structures.to_parquet(f'{work_dir}/t4_structures.parquet')
-    contributions.to_parquet(f'{work_dir}/t4_contributions.parquet')
-    mulliken_charges.to_parquet(f'{work_dir}/t4_mulliken_charges.parquet')
-
-
-def t4_read_parquet(work_dir):
-    train = pd.read_parquet(f'{work_dir}/t4_train.parquet')
-    test = pd.read_parquet(f'{work_dir}/t4_test.parquet')
-    structures = pd.read_parquet(f'{work_dir}/t4_structures.parquet')
-    contributions = pd.read_parquet(f'{work_dir}/t4_contributions.parquet')
-    mulliken_charges = pd.read_parquet(f'{work_dir}/t4_mulliken_charges.parquet')
-
-    return train, test, structures, contributions, mulliken_charges
 
 
 def t4_prepare_columns(train, test, good_columns_extra=None):
@@ -713,8 +691,10 @@ def t4_prepare_columns(train, test, good_columns_extra=None):
         'molecule_atom_1_dist_mean',
         'molecule_atom_index_0_y_1_mean_div',
         'molecule_type_dist_mean_div',
+
         'type',
 
+        # Crane
         'dist_C_0_a0', 'dist_C_1_a0', 'dist_C_2_a0', 'dist_C_3_a0', 'dist_C_4_a0', 'dist_F_0_a0', 'dist_F_1_a0',
         'dist_F_2_a0', 'dist_F_3_a0', 'dist_F_4_a0', 'dist_H_0_a0', 'dist_H_1_a0', 'dist_H_2_a0', 'dist_H_3_a0',
         'dist_H_4_a0', 'dist_N_0_a0', 'dist_N_1_a0', 'dist_N_2_a0', 'dist_N_3_a0', 'dist_N_4_a0', 'dist_O_0_a0',
@@ -726,6 +706,23 @@ def t4_prepare_columns(train, test, good_columns_extra=None):
         'dist_H_4_a1', 'dist_N_0_a1', 'dist_N_1_a1', 'dist_N_2_a1', 'dist_N_3_a1', 'dist_N_4_a1', 'dist_O_0_a1',
         'dist_O_1_a1', 'dist_O_2_a1', 'dist_O_3_a1', 'dist_O_4_a1',
         'EN_a1', 'rad_a1', 'n_bonds_a1', 'bond_lengths_mean_a1', 'bond_lengths_std_a1', 'bond_lengths_median_a1',
+
+        # Criskiev
+        'atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7', 'atom_8', 'atom_9', 'd_1_0', 'd_2_0', 'd_2_1',
+        'd_3_0', 'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3', 'd_5_0', 'd_5_1', 'd_5_2', 'd_5_3', 'd_6_0',
+        'd_6_1', 'd_6_2', 'd_6_3', 'd_7_0', 'd_7_1', 'd_7_2', 'd_7_3', 'd_8_0', 'd_8_1', 'd_8_2', 'd_8_3', 'd_9_0',
+        'd_9_1', 'd_9_2', 'd_9_3',
+
+        # Criskiev extra
+        # 'd_1_0_log', 'd_2_0_log', 'd_2_1_log', 'd_3_0_log', 'd_3_1_log', 'd_3_2_log', 'd_4_0_log', 'd_4_1_log',
+        # 'd_4_2_log', 'd_4_3_log', 'd_5_0_log', 'd_5_1_log', 'd_5_2_log', 'd_5_3_log', 'd_6_0_log', 'd_6_1_log',
+        # 'd_6_2_log', 'd_6_3_log', 'd_7_0_log', 'd_7_1_log', 'd_7_2_log', 'd_7_3_log', 'd_8_0_log', 'd_8_1_log',
+        # 'd_8_2_log', 'd_8_3_log', 'd_9_0_log', 'd_9_1_log', 'd_9_2_log', 'd_9_3',
+        #
+        # 'd_1_0_recp', 'd_2_0_recp', 'd_2_1_recp', 'd_3_0_recp', 'd_3_1_recp', 'd_3_2_recp', 'd_4_0_recp', 'd_4_1_recp',
+        # 'd_4_2_recp', 'd_4_3_recp', 'd_5_0_recp', 'd_5_1_recp', 'd_5_2_recp', 'd_5_3_recp', 'd_6_0_recp', 'd_6_1_recp',
+        # 'd_6_2_recp', 'd_6_3_recp', 'd_7_0_recp', 'd_7_1_recp', 'd_7_2_recp', 'd_7_3_recp', 'd_8_0_recp', 'd_8_1_recp',
+        # 'd_8_2_recp', 'd_8_3_recp', 'd_9_0_recp', 'd_9_1_recp', 'd_9_2_recp', 'd_9_3'
     ]
 
     good_columns += (good_columns_extra if good_columns_extra is not None else [])
@@ -744,6 +741,221 @@ def t4_prepare_columns(train, test, good_columns_extra=None):
     X_test = test[good_columns].copy()
 
     return X, X_test, labels
+
+
+def t4_criskiev_features(train_, test_, structures_):
+    def add_coordinates(base, structures, index):
+        df = pd.merge(base, structures, how='inner',
+                      left_on=['molecule_index', f'atom_index_{index}'],
+                      right_on=['molecule_index', 'atom_index']).drop(['atom_index'], axis=1)
+        df = df.rename(columns={
+            'atom': f'atom_{index}',
+            'x': f'x_{index}',
+            'y': f'y_{index}',
+            'z': f'z_{index}'
+        })
+        return df
+
+    def add_atoms(base, atoms):
+        df = pd.merge(base, atoms, how='inner',
+                      on=['molecule_index', 'atom_index_0', 'atom_index_1'])
+        return df
+
+    def merge_all_atoms(base, structures):
+        df = pd.merge(base, structures, how='left',
+                      left_on=['molecule_index'],
+                      right_on=['molecule_index'])
+        df = df[(df.atom_index_0 != df.atom_index) & (df.atom_index_1 != df.atom_index)]
+        return df
+
+    def add_center(df):
+        df['x_c'] = ((df['x_1'] + df['x_0']) * np.float32(0.5))
+        df['y_c'] = ((df['y_1'] + df['y_0']) * np.float32(0.5))
+        df['z_c'] = ((df['z_1'] + df['z_0']) * np.float32(0.5))
+
+    def add_distance_to_center(df):
+        df['d_c'] = ((
+                             (df['x_c'] - df['x']) ** np.float32(2) +
+                             (df['y_c'] - df['y']) ** np.float32(2) +
+                             (df['z_c'] - df['z']) ** np.float32(2)
+                     ) ** np.float32(0.5))
+
+    def add_distance_between(df, suffix1, suffix2):
+        df[f'd_{suffix1}_{suffix2}'] = ((
+                                                (df[f'x_{suffix1}'] - df[f'x_{suffix2}']) ** np.float32(2) +
+                                                (df[f'y_{suffix1}'] - df[f'y_{suffix2}']) ** np.float32(2) +
+                                                (df[f'z_{suffix1}'] - df[f'z_{suffix2}']) ** np.float32(2)
+                                        ) ** np.float32(0.5))
+
+    def add_distances(df):
+        n_atoms = 1 + max([int(c.split('_')[1]) for c in df.columns if c.startswith('x_')])
+
+        for i in range(1, n_atoms):
+            for vi in range(min(4, i)):
+                add_distance_between(df, i, vi)
+
+    def build_type_dataframes(base, structures):
+        base = base.drop('type', axis=1).copy()
+        base = base.reset_index()
+        base['id'] = base['id'].astype('int32')
+        structures = structures[structures['molecule_index'].isin(base['molecule_index'])]
+        return base, structures
+
+    def build_couple_dataframe(some_csv, structures_csv, n_atoms=10):
+        base, structures = build_type_dataframes(some_csv, structures_csv)
+        base = add_coordinates(base, structures, 0)
+        base = add_coordinates(base, structures, 1)
+
+        base = base.drop(['atom_0', 'atom_1'], axis=1)
+        atoms = base.drop('id', axis=1).copy()
+        if 'scalar_coupling_constant' in some_csv:
+            atoms = atoms.drop(['scalar_coupling_constant'], axis=1)
+
+        add_center(atoms)
+        atoms = atoms.drop(['x_0', 'y_0', 'z_0', 'x_1', 'y_1', 'z_1'], axis=1)
+
+        atoms = merge_all_atoms(atoms, structures)
+
+        add_distance_to_center(atoms)
+
+        atoms = atoms.drop(['x_c', 'y_c', 'z_c', 'atom_index'], axis=1)
+        atoms.sort_values(['molecule_index', 'atom_index_0', 'atom_index_1', 'd_c'], inplace=True)
+        atom_groups = atoms.groupby(['molecule_index', 'atom_index_0', 'atom_index_1'])
+        atoms['num'] = atom_groups.cumcount() + 2
+        atoms = atoms.drop(['d_c'], axis=1)
+        atoms = atoms[atoms['num'] < n_atoms]
+
+        atoms = atoms.set_index(['molecule_index', 'atom_index_0', 'atom_index_1', 'num']).unstack()
+        atoms.columns = [f'{col[0]}_{col[1]}' for col in atoms.columns]
+        atoms = atoms.reset_index()
+
+        # downcast back to int8
+        for col in atoms.columns:
+            if col.startswith('atom_'):
+                atoms[col] = atoms[col].fillna(0).astype('int8')
+
+        atoms['molecule_index'] = atoms['molecule_index'].astype('int32')
+
+        full = add_atoms(base, atoms)
+        add_distances(full)
+
+        full.sort_values('id', inplace=True)
+
+        return full
+
+    def take_n_atoms(df, n_atoms, four_start=4):
+        labels = []
+        for i in range(2, n_atoms):
+            label = f'atom_{i}'
+            labels.append(label)
+
+        for i in range(n_atoms):
+            num = min(i, 4) if i < four_start else 4
+            for j in range(num):
+                labels.append(f'd_{i}_{j}')
+        if 'scalar_coupling_constant' in df:
+            labels.append('scalar_coupling_constant')
+        return df[labels]
+
+    train = train_.copy(deep=True)
+    test = test_.copy(deep=True)
+    structures = structures_.copy(deep=True)
+
+    train_dtypes = {
+        'molecule_name': 'category',
+        'atom_index_0': 'int8',
+        'atom_index_1': 'int8',
+        'type': 'category',
+        'scalar_coupling_constant': 'float32'
+    }
+
+    for c in train_dtypes:
+        train[c] = train[c].astype(train_dtypes[c])
+        if c in test:
+            test[c] = test[c].astype(train_dtypes[c])
+
+    structures_dtypes = {
+        'molecule_name': 'category',
+        'atom_index': 'int8',
+        'atom': 'category',
+        'x': 'float32',
+        'y': 'float32',
+        'z': 'float32'
+    }
+
+    for c in structures_dtypes:
+        structures[c] = structures[c].astype(structures_dtypes[c])
+
+    ATOMIC_NUMBERS = {
+        'H': 1,
+        'C': 6,
+        'N': 7,
+        'O': 8,
+        'F': 9
+    }
+
+    train.set_index('id', inplace=True)
+    test.set_index('id', inplace=True)
+
+    train['molecule_index'] = train.molecule_name.str.replace('dsgdb9nsd_', '').astype('int32')
+    train = train[['molecule_index', 'atom_index_0', 'atom_index_1', 'type']]
+
+    test['molecule_index'] = test.molecule_name.str.replace('dsgdb9nsd_', '').astype('int32')
+    test = test[['molecule_index', 'atom_index_0', 'atom_index_1', 'type']]
+
+    structures['molecule_index'] = structures.molecule_name.str.replace('dsgdb9nsd_', '').astype('int32')
+    structures = structures[['molecule_index', 'atom_index', 'atom', 'x', 'y', 'z']]
+    structures['atom'] = structures['atom'].replace(ATOMIC_NUMBERS).astype('int8')
+
+    train = build_couple_dataframe(train, structures)
+    train = take_n_atoms(train, 10)
+    train = train.fillna(0)
+    train.index = train_.index
+
+    test = build_couple_dataframe(test, structures)
+    test = take_n_atoms(test, 10)
+    test = test.fillna(0)
+    test.index = test_.index
+
+    criskiev_columns = ['atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7', 'atom_8', 'atom_9', 'd_1_0',
+                        'd_2_0', 'd_2_1', 'd_3_0', 'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3', 'd_5_0',
+                        'd_5_1', 'd_5_2', 'd_5_3', 'd_6_0', 'd_6_1', 'd_6_2', 'd_6_3', 'd_7_0', 'd_7_1', 'd_7_2',
+                        'd_7_3', 'd_8_0', 'd_8_1', 'd_8_2', 'd_8_3', 'd_9_0', 'd_9_1', 'd_9_2', 'd_9_3']
+
+    return pd.concat([train_, train[criskiev_columns]], axis=1), pd.concat([test_, test[criskiev_columns]], axis=1)
+
+
+# def t4_criskiev_features_extra(train, test):
+#     def _helper(df):
+#         criskiev_columns = ['d_1_0', 'd_2_0', 'd_2_1', 'd_3_0', 'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3',
+#                             'd_5_0', 'd_5_1', 'd_5_2', 'd_5_3', 'd_6_0', 'd_6_1', 'd_6_2', 'd_6_3', 'd_7_0', 'd_7_1',
+#                             'd_7_2', 'd_7_3', 'd_8_0', 'd_8_1', 'd_8_2', 'd_8_3', 'd_9_0', 'd_9_1', 'd_9_2', 'd_9_3']
+#         for c in criskiev_columns:
+#             # df[f'{c}_log'] = np.log(df[c])
+#             # df[f'{c}_log'] = df[f'{c}_log'].astype('float32')
+#             # df[f'{c}_recp'] = 1 / (df[c] ** 3)
+#             # df[f'{c}_recp'] = df[f'{c}_recp'].astype('float32')
+#             df[c] = 1 / (df[c] ** 3)
+#             df[c] = df[c].astype('float32')
+#
+#     _helper(train)
+#     _helper(test)
+
+
+def t4_to_parquet(work_dir, train, test, structures, contributions):
+    train.to_parquet(f'{work_dir}/t4_train.parquet')
+    test.to_parquet(f'{work_dir}/t4_test.parquet')
+    structures.to_parquet(f'{work_dir}/t4_structures.parquet')
+    contributions.to_parquet(f'{work_dir}/t4_contributions.parquet')
+
+
+def t4_read_parquet(work_dir):
+    train = pd.read_parquet(f'{work_dir}/t4_train.parquet')
+    test = pd.read_parquet(f'{work_dir}/t4_test.parquet')
+    structures = pd.read_parquet(f'{work_dir}/t4_structures.parquet')
+    contributions = pd.read_parquet(f'{work_dir}/t4_contributions.parquet')
+
+    return train, test, structures, contributions
 
 
 def t4_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels):
