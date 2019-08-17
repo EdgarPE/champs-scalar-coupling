@@ -20,8 +20,8 @@ WORK_DIR = '../work/t4'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t4'
 
-# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['2JHC']
+TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+# TYPE_WL = ['1JHN']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -29,16 +29,15 @@ SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 3,
-    '1JHN': 5,
+    '_': 5,
 }
 
 N_ESTIMATORS = {
-    '_': 2000,
-    '1JHC': 6000,
-    '2JHC': 4000,
-    '3JHC': 6000,
-    '1JHN': 6000,
+    '_': 12000,
+    # '1JHC': 6000,
+    # '2JHC': 4000,
+    # '3JHC': 6000,
+    # '1JHN': 6000,
 }
 
 PARAMS = {
@@ -58,11 +57,12 @@ PARAMS = {
         'reg_lambda': 0.3,
         'colsample_bytree': 1.0
     },
-    '1JHN': {'subsample': 1, 'learning_rate': 0.05, 'min_child_samples': 5},
+    '1JHN': {'subsample': 1, 'learning_rate': 0.05},
+    # '1JHN': {'subsample': 1, 'learning_rate': 0.05, 'min_child_samples': 5, 'num_leaves': 500, 'max_depth': 11},
     '2JHN': {'subsample': 1, 'learning_rate': 0.05},
     '3JHN': {'subsample': 1, 'learning_rate': 0.05},
     '1JHC': {'min_child_samples': 120},
-    '2JHC': {'min_child_samples': 500, 'learning_rate': 0.2, 'num_leaves': 500, 'max_depth': 11},
+    # '2JHC': {'min_child_samples': 500, 'learning_rate': 0.2, 'num_leaves': 500, 'max_depth': 11},
 
 }
 

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import sys
 
 ##### COPY__PASTE__LIB__BEGIN #####
 
@@ -226,7 +227,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
             plt.figure(figsize=(16, 12))
             sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False));
             plt.title('LGB Features (avg over folds)')
-            plt.savefig('/tmp/importance.png')
+            plt.savefig(fname = sys.argv[0] + '.importance.png')
             # plt.show()
 
             result_dict['feature_importance'] = feature_importance

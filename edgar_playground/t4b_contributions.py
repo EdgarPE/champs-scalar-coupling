@@ -30,11 +30,11 @@ SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 3,
+    '_': 5,
 }
 
 N_ESTIMATORS = {
-    '_': 10000, # 8000-nek még van értelme
+    '_': 8000, # 8000-nek még van értelme
 }
 
 PARAMS = {
@@ -57,7 +57,7 @@ PARAMS = {
     '1JHN': {'subsample': 1, 'learning_rate': 0.05},
     '2JHN': {'subsample': 1, 'learning_rate': 0.05},
     '3JHN': {'subsample': 1, 'learning_rate': 0.05},
-    '1JHC': {'min_child_samples': 120}
+    '1JHC': {'min_child_samples': 120},
 }
 
 # train, test, structures, contributions = t4_load_data(INPUT_DIR)
