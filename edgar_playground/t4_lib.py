@@ -425,6 +425,8 @@ def t4_merge_contributions(train, contributions):
                      left_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'],
                      right_on=['molecule_name', 'atom_index_0', 'atom_index_1', 'type'])
 
+    # train['contrib_sum'] = train['fc'] + train['sd'] + train['pso'] + train['dso']
+
     return train
 
 
@@ -439,6 +441,7 @@ def t4_load_data_contributions_oof(work_dir, train, test):
         'oof_pso': 'pso',
         'oof_dso': 'dso',
     })
+    train['contrib_sum'] = train['fc'] + train['sd'] + train['pso'] + train['dso']
 
     oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_test.csv')
     test = pd.merge(test, oof_contributions, how='left',
@@ -450,6 +453,7 @@ def t4_load_data_contributions_oof(work_dir, train, test):
         'oof_pso': 'pso',
         'oof_dso': 'dso',
     })
+    test['contrib_sum'] = test['fc'] + test['sd'] + test['pso'] + test['dso']
 
     reduce_mem_usage(train)
     reduce_mem_usage(test)
@@ -598,10 +602,12 @@ def t4_distance_feature(train, test):
     test_p_0 = test[['x_0', 'y_0', 'z_0']].values
     test_p_1 = test[['x_1', 'y_1', 'z_1']].values
 
-    train['dist'] = np.linalg.norm(train_p_0 - train_p_1, axis=1)
-    test['dist'] = np.linalg.norm(test_p_0 - test_p_1, axis=1)
-    train['dist'] = 1 / (train['dist'] ** 3)  # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
-    test['dist'] = 1 / (test['dist'] ** 3)
+    train['dist_lin'] = np.linalg.norm(train_p_0 - train_p_1, axis=1)
+    test['dist_lin'] = np.linalg.norm(test_p_0 - test_p_1, axis=1)
+    train['subtype'] = (train['dist_lin'] <= 1.065).astype('int8')
+    test['subtype'] = (test['dist_lin'] <= 1.065).astype('int8')
+    train['dist'] = 1 / (train['dist_lin'] ** 3)  # https://www.kaggle.com/vaishvik25/1-r-3-hyperpar-tuning
+    test['dist'] = 1 / (test['dist_lin'] ** 3)
     train['dist_x'] = (train['x_0'] - train['x_1']) ** 2
     test['dist_x'] = (test['x_0'] - test['x_1']) ** 2
     train['dist_y'] = (train['y_0'] - train['y_1']) ** 2
@@ -648,6 +654,8 @@ def t4_prepare_columns(train, test, good_columns_extra=None):
         'molecule_atom_index_0_dist_mean',
         'molecule_atom_index_0_dist_std',
         'dist',
+        'dist_lin',
+        'subtype',
         'molecule_atom_index_1_dist_std',
         'molecule_atom_index_1_dist_max',
         'molecule_atom_index_1_dist_mean',

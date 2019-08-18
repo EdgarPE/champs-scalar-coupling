@@ -22,7 +22,7 @@ WORK_DIR = '../work/t4'
 OUTPUT_DIR = '../work/t4'
 
 # TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['1JHN']
+TYPE_WL = ['3JHC', '2JHH', '3JHH']
 
 # TARGET_WL = ['fc', 'sd', 'pso', 'dso']
 TARGET_WL = ['fc']
@@ -35,7 +35,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 2000, # 8000-nek még van értelme
+    '_': 1500, # 8000-nek még van értelme
 }
 
 
@@ -66,7 +66,8 @@ FIX_PARAMS = {
 }
 
 FIX_PARAMS = {
-    '_': {"early_stopping_rounds":100,
+    '_': {
+            "early_stopping_rounds": 200,
             "eval_metric" : 'mae',
             # 'eval_names': ['valid'],
             #'callbacks': [lgb.reset_parameter(learning_rate=learning_rate_010_decay_power_099)],
@@ -80,7 +81,8 @@ from scipy.stats import uniform as sp_uniform
 
 SEARCH_PARAMS = {
     '_': {
-        'min_child_samples': sp_randint(10, 1000),
+        # 'min_child_samples': sp_randint(25, 150),
+        'min_child_samples': list(range(20, 90)),
     },
 }
 
@@ -155,7 +157,9 @@ for type_name in TYPE_WL:
 
         columns = X.columns
 
-        (train_index, valid_index) = next(ShuffleSplit(n_splits=1, train_size=0.2).split(X_t, y_t))
+        print(X_t.shape)
+
+        (train_index, valid_index) = next(ShuffleSplit(n_splits=1, train_size=0.8).split(X_t, y_t))
 
         if type(X) == np.ndarray:
             X_train, X_valid = X_t[columns][train_index], X_t[columns][valid_index]
@@ -164,8 +168,15 @@ for type_name in TYPE_WL:
             X_train, X_valid = X_t[columns].iloc[train_index], X_t[columns].iloc[valid_index]
             y_train, y_valid = y_t.iloc[train_index], y_t.iloc[valid_index]
 
-        eval_set = [(X_train, y_train), (X_valid, y_valid)]
-        _FIX_PARAMS['eval_set'] = (X_valid, y_valid)
+        # eval_set = [(X_train, y_train), (X_valid, y_valid)]
+        # _FIX_PARAMS['eval_set'] = (X_valid, y_valid)
+        # _FIX_PARAMS['eval_set'] = [(X_train, y_train), (X_valid, y_valid)]
+        _FIX_PARAMS['eval_set'] = [(X_valid, y_valid), (X_train, y_train)]
+
+        print(X_train.shape)
+        print(y_train.shape)
+        print(X_valid.shape)
+        print(y_valid.shape)
 
         print("Training of type %s, component '%s', train size: %d" % (type_name, target, len(y_t)))
 
@@ -176,26 +187,32 @@ for type_name in TYPE_WL:
         #                                              n_estimators=_N_ESTIMATORS)
 
         #This parameter defines the number of HP points to be tested
-        n_HP_points_to_test = 60
+        n_HP_points_to_test = 9
 
         #n_estimators is set to a "large value". The actual number of trees build will depend on early stopping and 5000 define only the absolute maximum
-        clf = lgb.LGBMRegressor(max_depth=9, random_state=SEED, silent=True, metric='None', n_jobs=-1, n_estimators=_N_ESTIMATORS,
-                                 objective='regression', num_leaves=128, learning_rate=0.1, boosting_type='gbdt',
-                                 subsample_freq=1, subsample=1, bagging_seed=SEED, verbosity=-1, reg_alpha=0.1,
-                                 reg_lambda=0.3, colsample_bytree=1.0, )
+        clf = lgb.LGBMRegressor(max_depth=9, random_state=SEED, silent=True, metric='mae', n_jobs=-1, n_estimators=_N_ESTIMATORS,
+                                objective='regression', num_leaves=128, learning_rate=0.1, boosting_type='gbdt',
+                                subsample_freq=1, subsample=0.9, bagging_seed=SEED, verbosity=-1, reg_alpha=0.1,
+                                reg_lambda=0.3, colsample_bytree=1.0, )
 
         gs = RandomizedSearchCV(
             estimator=clf, param_distributions=_SEARCH_PARAMS,
             n_iter=n_HP_points_to_test,
-            # scoring='roc_auc',
+            scoring='neg_mean_absolute_error',
             cv=_N_FOLD,
             refit=True,
             random_state=SEED,
-            verbose=True)
+            verbose=10000)
 
-
-        gs.fit(X_t, y_t, **_FIX_PARAMS)
+        gs.fit(X_train, y_train, **_FIX_PARAMS)
+        _FIX_PARAMS['eval_set'] = None
         print('Best score reached: {} with params: {} '.format(gs.best_score_, gs.best_params_))
         print('Results:')
         print(gs.cv_results_)
 
+        means = gs.cv_results_['mean_test_score']
+        stds = gs.cv_results_['std_test_score']
+        for mean, std, params in sorted(zip(means, stds, gs.cv_results_['params']), key=lambda x: list(x[2].values())[0],
+                                        reverse=False):
+            print("%0.6f (+/-%0.06f) for %r"
+                  % (mean, std * 2, params))
