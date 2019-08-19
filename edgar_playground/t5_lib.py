@@ -37,31 +37,31 @@ def map_atom_info(df, atom_idx, structures):
     return df
 
 
-def reduce_mem_usage(df, verbose=True):
-    start_mem = df.memory_usage().sum() / 1024 ** 2
-    for col in df.columns:
-        col_type = df[col].dtypes
-        if str(col_type)[:3] == 'int' or str(col_type)[:5] == 'float':
-            c_min = df[col].min()
-            c_max = df[col].max()
-            if str(col_type)[:3] == 'int':
-                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
-                    df[col] = df[col].astype(np.int8)
-                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
-                    df[col] = df[col].astype(np.int16)
-                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
-                    df[col] = df[col].astype(np.int32)
-                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
-                    df[col] = df[col].astype(np.int64)
-            else:
-                if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
-                    df[col] = df[col].astype(np.float32)
-                else:
-                    df[col] = df[col].astype(np.float64)
-    end_mem = df.memory_usage().sum() / 1024 ** 2
-    if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (
-            start_mem - end_mem) / start_mem))
-    return df
+# def reduce_mem_usage(df, verbose=True):
+#     start_mem = df.memory_usage().sum() / 1024 ** 2
+#     for col in df.columns:
+#         col_type = df[col].dtypes
+#         if str(col_type)[:3] == 'int' or str(col_type)[:5] == 'float':
+#             c_min = df[col].min()
+#             c_max = df[col].max()
+#             if str(col_type)[:3] == 'int':
+#                 if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
+#                     df[col] = df[col].astype(np.int8)
+#                 elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+#                     df[col] = df[col].astype(np.int16)
+#                 elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+#                     df[col] = df[col].astype(np.int32)
+#                 elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
+#                     df[col] = df[col].astype(np.int64)
+#             else:
+#                 if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+#                     df[col] = df[col].astype(np.float32)
+#                 else:
+#                     df[col] = df[col].astype(np.float64)
+#     end_mem = df.memory_usage().sum() / 1024 ** 2
+#     if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (
+#             start_mem - end_mem) / start_mem))
+#     return df
 
 
 @jit
@@ -162,7 +162,8 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
             model.fit(X_train, y_train,
                       eval_set=[(X_train, y_train), (X_valid, y_valid)],
                       eval_metric=metrics_dict[eval_metric]['lgb_metric_name'],
-                      verbose=verbose, early_stopping_rounds=early_stopping_rounds)
+                      verbose=verbose, early_stopping_rounds=early_stopping_rounds,
+                      )  # callbacks=[lgb.reset_parameter(learning_rate=t5_learning_rate_010_decay_power_0995)]
 
             y_pred_valid = model.predict(X_valid)
             y_pred = model.predict(X_test, num_iteration=model.best_iteration_)
@@ -344,9 +345,6 @@ def t5_load_data_mulliken_oof(work_dir, train, test):
     test.drop('atom_index', axis=1, inplace=True)
     test.rename(inplace=True, columns={'oof_mulliken_charge': 'mulliken_charge_1'})
 
-    reduce_mem_usage(train)
-    reduce_mem_usage(test)
-
     return train, test
 
 
@@ -384,9 +382,6 @@ def t5_load_data_contributions_oof(work_dir, train, test):
         'oof_dso': 'dso',
     })
     test['contrib_sum'] = test['fc'] + test['sd'] + test['pso'] + test['dso']
-
-    reduce_mem_usage(train)
-    reduce_mem_usage(test)
 
     return train, test
 
@@ -662,5 +657,35 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
 
             train.loc[train['type'] == t, f'oof_{target}'] = X_short.loc[X_short['type'] == t, 'oof']
             test.loc[test['type'] == t, f'oof_{target}'] = X_short_test.loc[X_short_test['type'] == t, 'prediction']
+
+
+def t5_learning_rate_010_decay_power_099(current_iter):
+    base_learning_rate = 0.1
+    lr = base_learning_rate * np.power(.99, current_iter)
+    return lr if lr > 1e-3 else 1e-3
+
+
+def t5_learning_rate_010_decay_power_0995(current_iter):
+    base_learning_rate = 0.1
+    lr = base_learning_rate * np.power(.995, current_iter)
+    return lr if lr > 1e-3 else 1e-3
+
+
+def t5_learning_rate_005_decay_power_099(current_iter):
+    base_learning_rate = 0.05
+    lr = base_learning_rate * np.power(.99, current_iter)
+    return lr if lr > 1e-3 else 1e-3
+
+
+def t5_learning_rate_005_decay_power_099931(current_iter):
+    base_learning_rate = 0.05
+    lr = base_learning_rate * np.power(.99931, current_iter)
+    return lr if lr > 1e-3 else 1e-3
+
+
+def t5_learning_rate_020_decay_power_099965(current_iter):
+    base_learning_rate = 0.2
+    lr = base_learning_rate * np.power(.99965, current_iter)
+    return max(lr, 3e-3)
 
 ##### COPY__PASTE__LIB__END #####
