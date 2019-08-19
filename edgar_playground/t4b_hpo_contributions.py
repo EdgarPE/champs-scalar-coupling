@@ -22,7 +22,7 @@ WORK_DIR = '../work/t4'
 OUTPUT_DIR = '../work/t4'
 
 # TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['3JHC', '2JHH', '3JHH']
+TYPE_WL = ['3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC']
 
 # TARGET_WL = ['fc', 'sd', 'pso', 'dso']
 TARGET_WL = ['fc']
@@ -35,7 +35,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 1500, # 8000-nek még van értelme
+    '_': 300, # 8000-nek még van értelme
 }
 
 
@@ -71,9 +71,9 @@ FIX_PARAMS = {
             "eval_metric" : 'mae',
             # 'eval_names': ['valid'],
             #'callbacks': [lgb.reset_parameter(learning_rate=learning_rate_010_decay_power_099)],
-            'verbose': 500,
+            'verbose': 100,
             'categorical_feature': 'auto',
-          }
+          },
 }
 
 from scipy.stats import randint as sp_randint
@@ -82,7 +82,11 @@ from scipy.stats import uniform as sp_uniform
 SEARCH_PARAMS = {
     '_': {
         # 'min_child_samples': sp_randint(25, 150),
-        'min_child_samples': list(range(20, 90)),
+        # 'num_leaves': [50, 100, 150, 200, 300, 500],
+        # 'subsample': [0.2, 0.4, 0.6, 0.8, 0.9, 1],
+        'colsample_bytree': sp_uniform(loc=0.4, scale=0.6),
+        'reg_alpha': sp_uniform(loc=0.0, scale=0.5),
+        'reg_lambda': sp_uniform(loc=0.0, scale=0.6),
     },
 }
 
@@ -187,13 +191,13 @@ for type_name in TYPE_WL:
         #                                              n_estimators=_N_ESTIMATORS)
 
         #This parameter defines the number of HP points to be tested
-        n_HP_points_to_test = 9
+        n_HP_points_to_test = 30
 
         #n_estimators is set to a "large value". The actual number of trees build will depend on early stopping and 5000 define only the absolute maximum
-        clf = lgb.LGBMRegressor(max_depth=9, random_state=SEED, silent=True, metric='mae', n_jobs=-1, n_estimators=_N_ESTIMATORS,
-                                objective='regression', num_leaves=128, learning_rate=0.1, boosting_type='gbdt',
-                                subsample_freq=1, subsample=0.9, bagging_seed=SEED, verbosity=-1, reg_alpha=0.1,
-                                reg_lambda=0.3, colsample_bytree=1.0, )
+        clf = lgb.LGBMRegressor(random_state=SEED, silent=True, metric='mae', n_jobs=-1, n_estimators=_N_ESTIMATORS,
+                                max_depth=12, objective='regression', num_leaves=128, learning_rate=0.1, boosting_type='gbdt',
+                                subsample_freq=1, subsample=1, bagging_seed=SEED, verbosity=-1,
+                                min_child_samples=22) # colsample_bytree=1.0,  reg_alpha=0.1,  reg_lambda=0.3,
 
         gs = RandomizedSearchCV(
             estimator=clf, param_distributions=_SEARCH_PARAMS,
@@ -207,8 +211,8 @@ for type_name in TYPE_WL:
         gs.fit(X_train, y_train, **_FIX_PARAMS)
         _FIX_PARAMS['eval_set'] = None
         print('Best score reached: {} with params: {} '.format(gs.best_score_, gs.best_params_))
-        print('Results:')
-        print(gs.cv_results_)
+        # print('Results:')
+        # print(gs.cv_results_)
 
         means = gs.cv_results_['mean_test_score']
         stds = gs.cv_results_['std_test_score']

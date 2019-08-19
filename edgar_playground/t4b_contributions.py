@@ -40,7 +40,7 @@ N_ESTIMATORS = {
 PARAMS = {
     '_': {
         'num_leaves': 128,
-        'min_child_samples': 79,
+        'min_child_samples': 22,
         'objective': 'regression',
         'max_depth': 9,
         'learning_rate': 0.1,

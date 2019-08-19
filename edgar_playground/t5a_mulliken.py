@@ -3,6 +3,8 @@ import pandas as pd
 import os
 import sys
 
+pd.set_option('display.max_rows', 500)
+
 ##### COPY__PASTE__LIB__BEGIN #####
 
 basepath = os.path.abspath(os.path.dirname(os.path.abspath(sys.argv[0])) + '/..')
@@ -14,11 +16,14 @@ from edgar_playground.t5_lib import *
 INPUT_DIR = '../input'
 # INPUT_DIR = '../work/subsample_5000'
 
+# FEATURE_DIR = '.'
+FEATURE_DIR = '../feature/t5'
+
 # WORK_DIR= '.'
-WORK_DIR = '../work/t4'
+WORK_DIR = '../work/t5'
 
 # OUTPUT_DIR = '.'
-OUTPUT_DIR = '../work/t4'
+OUTPUT_DIR = '../work/t5'
 
 TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
 # TYPE_WL = ['1JHC']
@@ -37,7 +42,7 @@ N_ESTIMATORS = {'_': 10000}
 PARAMS = {
     '_': {
         'num_leaves': 128,
-        'min_child_samples': 79,
+        'min_child_samples': 22,
         'objective': 'regression',
         'max_depth': 9,
         'learning_rate': 0.1,
@@ -59,17 +64,17 @@ PARAMS = {
 
 # train, test, structures, contributions = t5_load_data(INPUT_DIR)
 #
-# train, test = t5_criskiev_features(train, test, structures)
+# train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
 #
 # structures = t5_merge_yukawa(INPUT_DIR, structures)
 #
-# structures = t5_crane_features(structures)
+# structures = t5_load_feature_crane(FEATURE_DIR, structures)
 #
 # train, test = t5_merge_structures(train, test, structures)
 #
 # t5_distance_feature(train, test)
 #
-# t5_artgor_features(train, test)
+# train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
 
 #
 # Save to and/or load from parquet
@@ -92,8 +97,8 @@ t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEE
 
 train = train[['molecule_name', 'atom_index_0', 'oof_mulliken_charge']].rename(columns={'atom_index_0': 'atom_index'})
 mean = train.groupby(['molecule_name', 'atom_index'])[['oof_mulliken_charge']].mean()
-mean.to_csv(f'{OUTPUT_DIR}/t4a_mulliken_train.csv', index=True)
+mean.to_csv(f'{OUTPUT_DIR}/t5a_mulliken_train.csv', index=True)
 
 test = test[['molecule_name', 'atom_index_0', 'oof_mulliken_charge']].rename(columns={'atom_index_0': 'atom_index'})
 mean = test.groupby(['molecule_name', 'atom_index'])[['oof_mulliken_charge']].mean()
-mean.to_csv(f'{OUTPUT_DIR}/t4a_mulliken_test.csv', index=True)
+mean.to_csv(f'{OUTPUT_DIR}/t5a_mulliken_test.csv', index=True)

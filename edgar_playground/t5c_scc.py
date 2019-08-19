@@ -3,6 +3,8 @@ import pandas as pd
 import os
 import sys
 
+pd.set_option('display.max_rows', 500)
+
 ##### COPY__PASTE__LIB__BEGIN #####
 
 basepath = os.path.abspath(os.path.dirname(os.path.abspath(sys.argv[0])) + '/..')
@@ -15,10 +17,10 @@ INPUT_DIR = '../input'
 # INPUT_DIR = '../work/subsample_5000'
 
 # WORK_DIR= '.'
-WORK_DIR = '../work/t4'
+WORK_DIR = '../work/t5'
 
 # OUTPUT_DIR = '.'
-OUTPUT_DIR = '../work/t4'
+OUTPUT_DIR = '../work/t5'
 
 TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
 # TYPE_WL = ['1JHN']
@@ -43,7 +45,7 @@ N_ESTIMATORS = {
 PARAMS = {
     '_': {
         'num_leaves': 128,
-        'min_child_samples': 79,
+        'min_child_samples': 22,
         'objective': 'regression',
         'max_depth': 9,
         'learning_rate': 0.2,
@@ -68,17 +70,17 @@ PARAMS = {
 
 # train, test, structures, contributions = t5_load_data(INPUT_DIR)
 #
-# train, test = t5_criskiev_features(train, test, structures)
+# train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
 #
 # structures = t5_merge_yukawa(INPUT_DIR, structures)
 #
-# structures = t5_crane_features(structures)
+# structures = t5_load_feature_crane(FEATURE_DIR, structures)
 #
 # train, test = t5_merge_structures(train, test, structures)
 #
 # t5_distance_feature(train, test)
 #
-# t5_artgor_features(train, test)
+# train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
 
 #
 # Save to and/or load from parquet
@@ -96,6 +98,7 @@ train, test = t5_load_data_mulliken_oof(WORK_DIR, train, test)
 # Load Phase 2. OOF data Contributions (fc, sd, pso, dso)
 #
 train, test = t5_load_data_contributions_oof(WORK_DIR, train, test)
+print(train.dtypes.T)
 
 # t5_criskiev_features_extra(train, test)
 
@@ -112,6 +115,6 @@ X, X_test, labels = t5_prepare_columns(train, test,
                                                            'pso', 'dso', 'contrib_sum'])
 t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
 
-train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4c_scc_train.csv', index=False)
+train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5c_scc_train.csv', index=False)
 test.rename(inplace=True, columns={'oof_scalar_coupling_constant': 'scalar_coupling_constant'})
-test[['id'] + [f'{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t4c_scc_test.csv', index=False)
+test[['id'] + [f'{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5c_scc_test.csv', index=False)
