@@ -22,8 +22,8 @@ WORK_DIR = '../work/t5'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-# TYPE_WL = ['1JHN']
+# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+TYPE_WL = ['3JHC']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -35,7 +35,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 12000,
+    '_': 4000,
     # '1JHC': 6000,
     # '2JHC': 4000,
     # '3JHC': 6000,

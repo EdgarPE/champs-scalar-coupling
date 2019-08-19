@@ -37,33 +37,6 @@ def map_atom_info(df, atom_idx, structures):
     return df
 
 
-# def reduce_mem_usage(df, verbose=True):
-#     start_mem = df.memory_usage().sum() / 1024 ** 2
-#     for col in df.columns:
-#         col_type = df[col].dtypes
-#         if str(col_type)[:3] == 'int' or str(col_type)[:5] == 'float':
-#             c_min = df[col].min()
-#             c_max = df[col].max()
-#             if str(col_type)[:3] == 'int':
-#                 if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
-#                     df[col] = df[col].astype(np.int8)
-#                 elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
-#                     df[col] = df[col].astype(np.int16)
-#                 elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
-#                     df[col] = df[col].astype(np.int32)
-#                 elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
-#                     df[col] = df[col].astype(np.int64)
-#             else:
-#                 if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
-#                     df[col] = df[col].astype(np.float32)
-#                 else:
-#                     df[col] = df[col].astype(np.float64)
-#     end_mem = df.memory_usage().sum() / 1024 ** 2
-#     if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (
-#             start_mem - end_mem) / start_mem))
-#     return df
-
-
 @jit
 def fast_auc(y_true, y_prob):
     """
@@ -127,7 +100,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     metrics_dict = {'mae': {'lgb_metric_name': 'mae',
                             'catboost_metric_name': 'MAE',
                             'sklearn_scoring_function': metrics.mean_absolute_error},
-                    'group_mae': {'lgb_metric_name': 'mae',
+                    'group_mae': {'lgb_metric_name': 'l2',
                                   'catboost_metric_name': 'MAE',
                                   'scoring_function': group_mean_log_mae},
                     'mse': {'lgb_metric_name': 'mse',
@@ -301,6 +274,13 @@ def t5_merge_yukawa(input_dir, structures):
     structures = pd.concat([structures, yukawa], axis=1)
 
     return structures
+
+
+def t5_load_feature_edgar(feature_dir, train_, test_):
+    train = pd.read_parquet(feature_dir + '/edgar/edgar_train.parquet')
+    test = pd.read_parquet(feature_dir + '/edgar/edgar_test.parquet')
+
+    return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
 
 def t5_load_data_mulliken(input_dir):
@@ -581,9 +561,6 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
     return X, X_test, labels
 
 
-
-
-
 # def t5_criskiev_features_extra(train, test):
 #     def _helper(df):
 #         criskiev_columns = ['d_1_0', 'd_2_0', 'd_2_1', 'd_3_0', 'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3',
@@ -619,44 +596,34 @@ def t5_read_parquet(work_dir):
 
 def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels):
     for type_name in TYPE_WL:
+        _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
+        _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
+        _N_ESTIMATORS = N_ESTIMATORS[type_name] if type_name in N_ESTIMATORS.keys() else N_ESTIMATORS['_']
+
         for target in TARGET_WL:
-            _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
-            _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
-            _N_ESTIMATORS = N_ESTIMATORS[type_name] if type_name in N_ESTIMATORS.keys() else N_ESTIMATORS['_']
+            subtype_col = 'dist_qcut_5'
+            subtypes = np.sort(X[subtype_col].unique())
+            for st in subtypes:
 
-            y_target = train[target]
-            t = labels['type'].transform([type_name])[0]
+                t = labels['type'].transform([type_name])[0]
 
-            folds = KFold(n_splits=_N_FOLD, shuffle=True, random_state=SEED)
+                folds = KFold(n_splits=_N_FOLD, shuffle=True, random_state=SEED)
 
-            X_short = pd.DataFrame({
-                'ind': list(X.index),
-                'type': X['type'].values,
-                'oof': [0] * len(X),
-                'target': y_target.values})
+                X_t = X.loc[(X['type'] == t) & (X[subtype_col] == st)]
 
-            X_short_test = pd.DataFrame({
-                'ind': list(X_test.index),
-                'type': X_test['type'].values,
-                'prediction': [0] * len(X_test)})
+                X_test_t = X_test.loc[(X_test['type'] == t) & (X_test[subtype_col] == st)]
+                y_t = train.loc[(train['type'] == t) & (train[subtype_col] == st), target]
 
-            X_t = X.loc[X['type'] == t]
-            X_test_t = X_test.loc[X_test['type'] == t]
-            y_t = X_short.loc[X_short['type'] == t, 'target']
+                print("Training of type %s, component '%s', subtype: (%d/%d) train size: %d" % (type_name, target, st, len(subtypes), len(y_t)))
 
-            print("Training of type %s, component '%s', train size: %d" % (type_name, target, len(y_t)))
+                result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
+                                                             model_type='lgb', eval_metric='group_mae',
+                                                             plot_feature_importance=True,
+                                                             verbose=200, early_stopping_rounds=200,
+                                                             n_estimators=_N_ESTIMATORS)
 
-            result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
-                                                         model_type='lgb', eval_metric='group_mae',
-                                                         plot_feature_importance=True,
-                                                         verbose=100, early_stopping_rounds=200,
-                                                         n_estimators=_N_ESTIMATORS)
-
-            X_short.loc[X_short['type'] == t, 'oof'] = result_dict_lgb_oof['oof']
-            X_short_test.loc[X_short_test['type'] == t, 'prediction'] = result_dict_lgb_oof['prediction']
-
-            train.loc[train['type'] == t, f'oof_{target}'] = X_short.loc[X_short['type'] == t, 'oof']
-            test.loc[test['type'] == t, f'oof_{target}'] = X_short_test.loc[X_short_test['type'] == t, 'prediction']
+                train.loc[(train['type'] == t) & (train[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['oof']
+                test.loc[(test['type'] == t) & (test[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['prediction']
 
 
 def t5_learning_rate_010_decay_power_099(current_iter):

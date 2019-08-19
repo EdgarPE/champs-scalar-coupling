@@ -25,21 +25,21 @@ WORK_DIR = '../work/t5'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-# TYPE_WL = ['1JHC']
+# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+TYPE_WL = ['1JHC', '1JHN', '2JHN', '3JHN']
 
-TARGET_WL = ['fc', 'sd', 'pso', 'dso']
-# TARGET_WL = ['fc']
+# TARGET_WL = ['fc', 'sd', 'pso', 'dso']
+TARGET_WL = ['fc']
 
 SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 5,
+    '_': 3,
 }
 
 N_ESTIMATORS = {
-    '_': 8000, # 8000-nek még van értelme
+    '_': 1000, # 8000-nek még van értelme
 }
 
 PARAMS = {
@@ -62,7 +62,7 @@ PARAMS = {
     '1JHN': {'subsample': 1, 'learning_rate': 0.05},
     '2JHN': {'subsample': 1, 'learning_rate': 0.05},
     '3JHN': {'subsample': 1, 'learning_rate': 0.05},
-    '1JHC': {'min_child_samples': 120},
+    # '1JHC': {'min_child_samples': 22},
 }
 
 # train, test, structures, contributions = t5_load_data(INPUT_DIR)
@@ -87,6 +87,11 @@ PARAMS = {
 train, test, structures, contributions = t5_read_parquet(WORK_DIR)
 
 #
+# Edike :)
+#
+train, test = t5_load_feature_edgar(FEATURE_DIR, train, test)
+
+#
 # Load Phase 1. OOF data Mulliken charge
 #
 train, test = t5_load_data_mulliken_oof(WORK_DIR, train, test)
@@ -99,7 +104,8 @@ train = t5_merge_contributions(train, contributions)
 #
 # Predict contributions
 #
-X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1'])
+X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1',
+                                                                        'dist_qcut_5', 'dist_qcut_21', 'dist_qcut_127'])
 t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
 
 # train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5b_contributions_train.csv', index=False)
