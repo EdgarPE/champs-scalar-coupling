@@ -25,19 +25,20 @@ WORK_DIR = '../work/t5'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+TYPE_WL = ['2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC']
 # TYPE_WL = ['1JHC']
 
-TARGET_WL = ['XX', 'YY', 'ZZ']
+TARGET_WL = ['ZZ', 'YY', 'XX']
 
 SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 5,
+    '_': 3,
+    '1JHN': 5,
 }
 
-N_ESTIMATORS = {'_': 10000}
+N_ESTIMATORS = {'_': 1000}
 
 PARAMS = {
     '_': {
@@ -83,10 +84,10 @@ PARAMS = {
 
 train, test, structures, contributions = t5_read_parquet(WORK_DIR)
 
-#
+
 # Edike :)
-#
-# train, test = t5_load_feature_edgar(FEATURE_DIR, train, test)
+
+train, test = t5_load_feature_edgar(FEATURE_DIR, train, test)
 
 #
 # Load Phase 1. OOF data Mulliken charge
@@ -102,8 +103,11 @@ train = t5_preprocess_data_magnetic_st(train, magnetic_st)
 #
 # Predict Magnetic S.T.
 #
-X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1'])
-t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, 'type')
+extra_cols = []
+extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
+extra_cols += ['qcut_subtype_0','qcut_subtype_1','qcut_subtype_2']
+X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=extra_cols)
+t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
 
 #
 # Predict Mulliken charge

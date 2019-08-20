@@ -660,7 +660,7 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
                 result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
                                                              model_type='lgb', eval_metric='group_mae',
                                                              plot_feature_importance=True,
-                                                             verbose=500, early_stopping_rounds=200,
+                                                             verbose=100, early_stopping_rounds=200,
                                                              n_estimators=_N_ESTIMATORS)
 
                 train.loc[(train['type'] == t) & (train[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['oof']
