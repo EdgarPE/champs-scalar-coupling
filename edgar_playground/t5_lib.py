@@ -308,6 +308,21 @@ def t5_load_data_mulliken(input_dir):
     return mulliken_charges
 
 
+def t5_load_data_magnetic_st(input_dir):
+    magnetic_st = pd.read_csv(input_dir + '/magnetic_shielding_tensors.csv')
+
+    drop = ['XY', 'XZ', 'YX', 'YZ', 'ZX', 'ZY']
+    magnetic_st.drop(columns=drop, inplace=True)
+
+    int8 = ['atom_index']
+    magnetic_st[int8] = magnetic_st[int8].astype('int8')
+
+    float32 = ['XX', 'YY', 'ZZ']
+    magnetic_st[float32] = magnetic_st[float32].astype('float32')
+
+    return magnetic_st
+
+
 def t5_load_data_mulliken_oof(work_dir, train, test):
     mulliken_charges = pd.read_csv(work_dir + '/t5a_mulliken_train.csv')
     train = pd.merge(train, mulliken_charges, how='left',
@@ -337,6 +352,10 @@ def t5_load_data_mulliken_oof(work_dir, train, test):
 
     return train, test
 
+
+def t5_load_data_magnetic_st_oof(work_dir, train, test):
+    # todo
+    pass
 
 def t5_merge_contributions(train, contributions):
     train = pd.merge(train, contributions, how='left',
