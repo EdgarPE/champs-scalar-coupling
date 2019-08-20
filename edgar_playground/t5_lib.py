@@ -107,7 +107,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     metrics_dict = {'mae': {'lgb_metric_name': 'mae',
                             'catboost_metric_name': 'MAE',
                             'sklearn_scoring_function': metrics.mean_absolute_error},
-                    'group_mae': {'lgb_metric_name': 'l2',
+                    'group_mae': {'lgb_metric_name': 'mae',
                                   'catboost_metric_name': 'MAE',
                                   'scoring_function': group_mean_log_mae},
                     'mse': {'lgb_metric_name': 'mse',
@@ -142,8 +142,10 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
             model.fit(X_train, y_train,
                       eval_set=[(X_train, y_train), (X_valid, y_valid)],
                       eval_metric=metrics_dict[eval_metric]['lgb_metric_name'],
-                      verbose=verbose, early_stopping_rounds=early_stopping_rounds,
-                      )  # callbacks=[lgb.reset_parameter(learning_rate=t5_learning_rate_010_decay_power_0995)]
+                      verbose=verbose, early_stopping_rounds=early_stopping_rounds
+                      )
+            # callbacks=[lgb.reset_parameter(learning_rate=t5_learning_rate_010_decay_power_0995)]
+            # categorical_feature=['qcut_subtype_1','qcut_subtype_2']
 
             y_pred_valid = model.predict(X_valid)
             y_pred = model.predict(X_test, num_iteration=model.best_iteration_)
@@ -658,7 +660,7 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
                 result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
                                                              model_type='lgb', eval_metric='group_mae',
                                                              plot_feature_importance=True,
-                                                             verbose=200, early_stopping_rounds=200,
+                                                             verbose=500, early_stopping_rounds=200,
                                                              n_estimators=_N_ESTIMATORS)
 
                 train.loc[(train['type'] == t) & (train[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['oof']

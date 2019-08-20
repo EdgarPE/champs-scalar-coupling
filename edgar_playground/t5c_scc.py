@@ -16,14 +16,17 @@ from edgar_playground.t5_lib import *
 INPUT_DIR = '../input'
 # INPUT_DIR = '../work/subsample_5000'
 
+# FEATURE_DIR = '.'
+FEATURE_DIR = '../feature/t5'
+
 # WORK_DIR= '.'
 WORK_DIR = '../work/t5'
 
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['3JHC']
+TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+# TYPE_WL = ['3JHN']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -48,10 +51,10 @@ PARAMS = {
         'min_child_samples': 22,
         'objective': 'regression',
         'max_depth': 9,
-        'learning_rate': 0.2,
+        'learning_rate': 0.1, # 0.2 volt itt :)
         "boosting_type": "gbdt",
         "subsample_freq": 1,
-        "subsample": 0.9,
+        "subsample": 1,
         "bagging_seed": SEED,
         "metric": 'mae',
         "verbosity": -1,
@@ -60,7 +63,6 @@ PARAMS = {
         'colsample_bytree': 1.0
     },
     '1JHN': {'subsample': 1, 'learning_rate': 0.05},
-    # '1JHN': {'subsample': 1, 'learning_rate': 0.05, 'min_child_samples': 5, 'num_leaves': 500, 'max_depth': 11},
     '2JHN': {'subsample': 1, 'learning_rate': 0.05},
     '3JHN': {'subsample': 1, 'learning_rate': 0.05},
     '1JHC': {'min_child_samples': 120},
@@ -90,6 +92,11 @@ PARAMS = {
 train, test, structures, contributions = t5_read_parquet(WORK_DIR)
 
 #
+# Edike :)
+#
+train, test = t5_load_feature_edgar(FEATURE_DIR, train, test)
+
+#
 # Load Phase 1. OOF data Mulliken charge
 #
 train, test = t5_load_data_mulliken_oof(WORK_DIR, train, test)
@@ -109,9 +116,11 @@ train, test = t5_load_data_contributions_oof(WORK_DIR, train, test)
 # print(train.describe().T) # Verbose=True
 # print(train.dtypes.T)
 
-X, X_test, labels = t5_prepare_columns(train, test,
-                                       good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1', 'fc', 'sd',
-                                                           'pso', 'dso', 'contrib_sum'])
+extra_cols = []
+extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
+extra_cols += ['fc', 'sd', 'pso', 'dso', 'contrib_sum']
+extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
+X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=extra_cols)
 t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
 
 train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5c_scc_train.csv', index=False)

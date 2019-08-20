@@ -25,8 +25,8 @@ WORK_DIR = '../work/t5'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['1JHC', '1JHN', '2JHN', '3JHN']
+TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+# TYPE_WL = ['3JHN']
 
 # TARGET_WL = ['fc', 'sd', 'pso', 'dso']
 TARGET_WL = ['fc']

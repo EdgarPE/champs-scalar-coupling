@@ -34,7 +34,7 @@ def t5_edgar_qcut(train, test):
         '1JHC': [9, 50, 250], # ~ 80.000 / subtype
         '2JHC': [14, 75, 375],
         '3JHC': [19, 100, 500],
-        '1JHN': [1, 1, 1],
+        '1JHN': [1, 5, 25],
         '2JHN': [2, 10, 50],
         '3JHN': [3, 15, 75], # mindegy, hogy 2,3,5 vagy 9! felé osztom. Akkor is -2.15 lesz, van egy rövid rész, ahol gyenge nagyon
         '2JHH': [5, 25, 125],
@@ -48,6 +48,7 @@ def t5_edgar_qcut(train, test):
 
     for t in train['type'].unique():
         for col_index, bin_size in enumerate(bin_size_map[t]):
+            # bin_size *= 2
             print(f'type: {t}, bin_size: {bin_size}')
 
             data = list(train[train['type'] == t]['dist_lin']) + list(test[test['type'] == t]['dist_lin'])
@@ -60,7 +61,7 @@ def t5_edgar_qcut(train, test):
             test.loc[test['type'] == t, f'qcut_subtype_{col_index}'] = pd.cut(test.loc[test['type'] == t, 'dist_lin'],
                                                                           bins=bins, labels=False,
                                                                           include_lowest=True).astype('int8')
-    return train[columns].astype('int8'), test[columns].astype('int8')
+    return train[columns].astype('category'), test[columns].astype('category')
 
 
 # Dist feature
