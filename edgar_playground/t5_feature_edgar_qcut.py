@@ -17,7 +17,7 @@ from edgar_playground.t5_lib import *
 ##### COPY__PASTE__LIB__END #####
 
 # INPUT_DIR = '../input'
-INPUT_DIR = '../work/subsample_5000'
+# INPUT_DIR = '../work/subsample_5000'
 
 # WORK_DIR = '.'
 WORK_DIR = '../work/t5'
@@ -30,25 +30,37 @@ np.random.seed(SEED)
 
 
 def t5_edgar_qcut(train, test):
-    keep = []
-    for bin_size in [5, 21, 127]:
-        train[f'dist_qcut_{bin_size}'] = -1
-        test[f'dist_qcut_{bin_size}'] = -1
-        keep.append(f'dist_qcut_{bin_size}')
+    bin_size_map = {
+        '1JHC': [9, 50, 250], # ~ 80.000 / subtype
+        '2JHC': [14, 75, 375],
+        '3JHC': [19, 100, 500],
+        '1JHN': [1, 1, 1],
+        '2JHN': [2, 10, 50],
+        '3JHN': [3, 15, 75], # mindegy, hogy 2,3,5 vagy 9! felé osztom. Akkor is -2.15 lesz, van egy rövid rész, ahol gyenge nagyon
+        '2JHH': [5, 25, 125],
+        '3JHH': [7, 35, 70],
+    }
 
-        for t in train['type'].unique():
+    columns = ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
+
+    for c in columns:
+        train[c] = test[c] = -1
+
+    for t in train['type'].unique():
+        for col_index, bin_size in enumerate(bin_size_map[t]):
             print(f'type: {t}, bin_size: {bin_size}')
+
             data = list(train[train['type'] == t]['dist_lin']) + list(test[test['type'] == t]['dist_lin'])
 
-            _ser, bins = pd.qcut(data, bin_size, retbins=True, labels=False)
+            __ser, bins = pd.qcut(data, bin_size, retbins=True, labels=False)
 
-            train.loc[train['type'] == t, f'dist_qcut_{bin_size}'] = pd.cut(train.loc[train['type'] == t, 'dist_lin'],
+            train.loc[train['type'] == t, f'qcut_subtype_{col_index}'] = pd.cut(train.loc[train['type'] == t, 'dist_lin'],
                                                                             bins=bins, labels=False,
                                                                             include_lowest=True).astype('int8')
-            test.loc[test['type'] == t, f'dist_qcut_{bin_size}'] = pd.cut(test.loc[test['type'] == t, 'dist_lin'],
+            test.loc[test['type'] == t, f'qcut_subtype_{col_index}'] = pd.cut(test.loc[test['type'] == t, 'dist_lin'],
                                                                           bins=bins, labels=False,
                                                                           include_lowest=True).astype('int8')
-    return train[keep].astype('int8'), test[keep].astype('int8')
+    return train[columns].astype('int8'), test[columns].astype('int8')
 
 
 # Dist feature

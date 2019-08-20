@@ -70,6 +70,13 @@ def group_mean_log_mae(y_true, y_pred, types, floor=1e-9):
     maes = (y_true - y_pred).abs().groupby(types).mean()
     return np.log(maes.map(lambda x: max(x, floor))).mean()
 
+def mean_log_mae(y_true, y_pred):
+    """
+    Fast metric computation for this competition: https://www.kaggle.com/c/champs-scalar-coupling
+    Code is from this kernel: https://www.kaggle.com/uberkinder/efficient-metric
+    """
+    return np.log((y_true - y_pred).abs().mean())
+
 
 def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_metric='mae', columns=None,
                            plot_feature_importance=False, model=None,
@@ -209,6 +216,9 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
             sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False));
             plt.title('LGB Features (avg over folds)')
             plt.savefig(fname = sys.argv[0] + '.importance.png')
+            plt.close()
+            # plt.close('all')
+
             # plt.show()
 
             result_dict['feature_importance'] = feature_importance
@@ -598,21 +608,21 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
     for type_name in TYPE_WL:
         _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
         _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
-        _N_ESTIMATORS = N_ESTIMATORS[type_name] if type_name in N_ESTIMATORS.keys() else N_ESTIMATORS['_']
+        t = labels['type'].transform([type_name])[0]
 
         for target in TARGET_WL:
-            subtype_col = 'dist_qcut_5'
-            subtypes = np.sort(X[subtype_col].unique())
+            _N_ESTIMATORS = N_ESTIMATORS[type_name] if type_name in N_ESTIMATORS.keys() else N_ESTIMATORS['_']
+            _N_ESTIMATORS = _N_ESTIMATORS if target != 'fc' else _N_ESTIMATORS * 3
+            score_accumulator = []
+
+            subtype_col = 'qcut_subtype_0'
+            subtypes = np.sort(train.loc[(train['type'] == t), subtype_col].unique())
             for st in subtypes:
-
-                t = labels['type'].transform([type_name])[0]
-
-                folds = KFold(n_splits=_N_FOLD, shuffle=True, random_state=SEED)
-
                 X_t = X.loc[(X['type'] == t) & (X[subtype_col] == st)]
-
                 X_test_t = X_test.loc[(X_test['type'] == t) & (X_test[subtype_col] == st)]
                 y_t = train.loc[(train['type'] == t) & (train[subtype_col] == st), target]
+
+                folds = KFold(n_splits=_N_FOLD, shuffle=True, random_state=SEED)
 
                 print("Training of type %s, component '%s', subtype: (%d/%d) train size: %d" % (type_name, target, st, len(subtypes), len(y_t)))
 
@@ -624,6 +634,9 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
 
                 train.loc[(train['type'] == t) & (train[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['oof']
                 test.loc[(test['type'] == t) & (test[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['prediction']
+                score_accumulator = score_accumulator + list(result_dict_lgb_oof['scores'])
+
+            print('CV mean score [%s, %s]: %.4f, std: %.4f' % (type_name, target, np.mean(score_accumulator), np.std(score_accumulator)))
 
 
 def t5_learning_rate_010_decay_power_099(current_iter):
