@@ -536,7 +536,7 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
         'EN_a1', 'rad_a1', 'n_bonds_a1', 'bond_lengths_mean_a1', 'bond_lengths_std_a1', 'bond_lengths_median_a1',
 
         # Criskiev
-        'atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7', 'atom_8', 'atom_9', 'd_1_0', 'd_2_0', 'd_2_1',
+        'atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7', 'atom_8', 'atom_9', 'd_2_0', 'd_2_1', # 'd_1_0'
         'd_3_0', 'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3', 'd_5_0', 'd_5_1', 'd_5_2', 'd_5_3', 'd_6_0',
         'd_6_1', 'd_6_2', 'd_6_3', 'd_7_0', 'd_7_1', 'd_7_2', 'd_7_3', 'd_8_0', 'd_8_1', 'd_8_2', 'd_8_3', 'd_9_0',
         'd_9_1', 'd_9_2', 'd_9_3',

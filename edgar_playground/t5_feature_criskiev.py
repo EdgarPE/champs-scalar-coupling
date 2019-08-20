@@ -204,11 +204,40 @@ def t5_criskiev_features(train_, test_, structures_):
     return train[criskiev_columns], test[criskiev_columns]
 
 
+def t5_criskiev_features_improve(train, test):
+    def do_improve(df):
+        categories = ['atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7', 'atom_8', 'atom_9']
+        df[categories] = df[categories].astype('category')
+
+        df.drop(columns=['d_1_0'], inplace=True)
+
+        df['d_2_min'] = df[['d_2_0', 'd_2_1']].min(axis=1)
+        df['d_3_min'] = df[['d_3_0', 'd_3_1', 'd_3_2']].min(axis=1)
+        df['d_4_min'] = df[['d_4_0', 'd_4_1', 'd_4_2', 'd_4_3']].min(axis=1)
+        df['d_5_min'] = df[['d_5_0', 'd_5_1', 'd_5_2', 'd_5_3']].min(axis=1)
+        df['d_6_min'] = df[['d_6_0', 'd_6_1', 'd_6_2', 'd_6_3']].min(axis=1)
+        df['d_7_min'] = df[['d_7_0', 'd_7_1', 'd_7_2', 'd_7_3']].min(axis=1)
+        df['d_8_min'] = df[['d_8_0', 'd_8_1', 'd_8_2', 'd_8_3']].min(axis=1)
+        df['d_9_min'] = df[['d_9_0', 'd_9_1', 'd_9_2', 'd_9_3']].min(axis=1)
+
+        return df
+
+    train = do_improve(train)
+    test = do_improve(test)
+
+    return train, test
+
 train, test, structures, contributions = t5_load_data(INPUT_DIR)
 
-train_, test_ = t5_criskiev_features(train, test, structures)
+train, test = t5_criskiev_features(train, test, structures)
 
-train_.to_csv(f'{OUTPUT_DIR}/criskiev_train.csv', index=False)
-train_.to_parquet(f'{OUTPUT_DIR}/criskiev_train.parquet', index=False)
-test_.to_csv(f'{OUTPUT_DIR}/criskiev_test.csv', index=False)
-test_.to_parquet(f'{OUTPUT_DIR}/criskiev_test.parquet', index=False)
+print(train.dtypes.T)
+
+train, test = t5_criskiev_features_improve(train, test)
+
+print(train.dtypes.T)
+
+train.to_csv(f'{OUTPUT_DIR}/criskiev_train.csv', index=False)
+train.to_parquet(f'{OUTPUT_DIR}/criskiev_train.parquet', index=False)
+test.to_csv(f'{OUTPUT_DIR}/criskiev_test.csv', index=False)
+test.to_parquet(f'{OUTPUT_DIR}/criskiev_test.parquet', index=False)
