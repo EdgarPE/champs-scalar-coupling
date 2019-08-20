@@ -479,6 +479,15 @@ def t5_preprocess_data_mulliken(train, mulliken_charges):
     return train
 
 
+def t5_preprocess_data_magnetic_st(train, magnetic_st):
+    train = pd.merge(train, magnetic_st, how='left',
+                     left_on=['molecule_name', 'atom_index_0'],
+                     right_on=['molecule_name', 'atom_index'])
+    train.drop('atom_index', axis=1, inplace=True)
+
+    return train
+
+
 def t5_prepare_columns(train, test, good_columns_extra=None):
     good_columns = [
         # 'bond_lengths_mean_y',
@@ -623,7 +632,7 @@ def t5_read_parquet(work_dir):
     return train, test, structures, contributions
 
 
-def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels):
+def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, subtype_col = None):
     for type_name in TYPE_WL:
         _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
         _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
@@ -634,7 +643,8 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
             _N_ESTIMATORS = _N_ESTIMATORS if target != 'fc' else _N_ESTIMATORS * 3
             score_accumulator = []
 
-            subtype_col = 'qcut_subtype_0'
+            subtype_col = subtype_col if subtype_col != None else 'qcut_subtype_0'
+
             subtypes = np.sort(train.loc[(train['type'] == t), subtype_col].unique())
             for st in subtypes:
                 X_t = X.loc[(X['type'] == t) & (X[subtype_col] == st)]
