@@ -25,7 +25,7 @@ WORK_DIR = '../work/t5'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC']
 # TYPE_WL = ['1JHC']
 
 TARGET_WL = ['mulliken_charge']
@@ -84,6 +84,11 @@ PARAMS = {
 train, test, structures, contributions = t5_read_parquet(WORK_DIR)
 
 #
+# Edike :)
+#
+train, test = t5_load_feature_edgar(FEATURE_DIR, train, test)
+
+#
 # Load Mulliken charge target
 #
 mulliken_charges = t5_load_data_mulliken(INPUT_DIR)
@@ -92,8 +97,11 @@ train = t5_preprocess_data_mulliken(train, mulliken_charges)
 #
 # Predict Mulliken charge
 #
-X, X_test, labels = t5_prepare_columns(train, test)
-t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
+
+extra_cols = []
+extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
+X, X_test, labels = t5_prepare_columns(train, test, extra_cols)
+t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, 'qcut_subtype_0')
 
 train = train[['molecule_name', 'atom_index_0', 'oof_mulliken_charge']].rename(columns={'atom_index_0': 'atom_index'})
 mean = train.groupby(['molecule_name', 'atom_index'])[['oof_mulliken_charge']].mean()
