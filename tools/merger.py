@@ -23,7 +23,7 @@ else:
     if dataset_file == 'train':
         dataset = pd.read_csv('/home/edgarpe/kaggle/champs-scalar-coupling/input/train.csv')
     elif dataset_file == 'test':
-        dataset = pd.read_csv('/home/edgarpe/kaggle/champs-scalar-coupling/input/data.csv')
+        dataset = pd.read_csv('/home/edgarpe/kaggle/champs-scalar-coupling/input/test.csv')
     else:
         raise Exception('Dataset unknown')
 
