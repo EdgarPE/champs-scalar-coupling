@@ -570,6 +570,7 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
         'd_3_0', 'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3', 'd_5_0', 'd_5_1', 'd_5_2', 'd_5_3', 'd_6_0',
         'd_6_1', 'd_6_2', 'd_6_3', 'd_7_0', 'd_7_1', 'd_7_2', 'd_7_3', 'd_8_0', 'd_8_1', 'd_8_2', 'd_8_3', 'd_9_0',
         'd_9_1', 'd_9_2', 'd_9_3',
+        'd_2_min', 'd_3_min', 'd_4_min', 'd_5_min', 'd_6_min', 'd_7_min', 'd_8_min', 'd_9_min',
 
         # Criskiev extra
         # 'd_1_0_log', 'd_2_0_log', 'd_2_1_log', 'd_3_0_log', 'd_3_1_log', 'd_3_2_log', 'd_4_0_log', 'd_4_1_log',
@@ -642,7 +643,7 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
 
         for target in TARGET_WL:
             _N_ESTIMATORS = N_ESTIMATORS[type_name] if type_name in N_ESTIMATORS.keys() else N_ESTIMATORS['_']
-            _N_ESTIMATORS = _N_ESTIMATORS if target != 'fc' else _N_ESTIMATORS * 3
+            # _N_ESTIMATORS = _N_ESTIMATORS if target != 'fc' else _N_ESTIMATORS * 4
             score_accumulator = []
 
             subtype_col = subtype_col if subtype_col != None else 'qcut_subtype_0'
@@ -660,7 +661,7 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
                 result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
                                                              model_type='lgb', eval_metric='group_mae',
                                                              plot_feature_importance=True,
-                                                             verbose=100, early_stopping_rounds=200,
+                                                             verbose=500, early_stopping_rounds=200,
                                                              n_estimators=_N_ESTIMATORS)
 
                 train.loc[(train['type'] == t) & (train[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['oof']

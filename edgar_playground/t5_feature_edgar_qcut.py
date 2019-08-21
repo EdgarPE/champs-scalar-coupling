@@ -31,14 +31,14 @@ np.random.seed(SEED)
 
 def t5_edgar_qcut(train, test):
     bin_size_map = {
-        '1JHC': [9, 50, 250], # ~ 80.000 / subtype
-        '2JHC': [14, 75, 375],
-        '3JHC': [19, 100, 500],
+        '1JHC': [5, 25, 100],
+        '2JHC': [7, 35, 150],
+        '3JHC': [9, 50, 250],
         '1JHN': [1, 5, 25],
-        '2JHN': [2, 10, 50],
-        '3JHN': [3, 15, 75], # mindegy, hogy 2,3,5 vagy 9! felé osztom. Akkor is -2.15 lesz, van egy rövid rész, ahol gyenge nagyon
-        '2JHH': [5, 25, 125],
-        '3JHH': [7, 35, 70],
+        '2JHN': [1, 5, 25],
+        '3JHN': [1, 5, 25], # mindegy, hogy 2,3,5 vagy 9! felé osztom. Akkor is -2.15 lesz, van egy rövid rész, ahol gyenge nagyon
+        '2JHH': [2, 10, 50],
+        '3JHH': [3, 15, 75],
     }
 
     columns = ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
