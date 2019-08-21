@@ -25,8 +25,8 @@ WORK_DIR = '../work/t5'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-TYPE_WL = ['2JHH', '3JHH', '1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', ]
-# TYPE_WL = ['3JHN']
+# TYPE_WL = ['2JHH', '3JHH', '1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', ]
+TYPE_WL = ['1JHC', '2JHC', '3JHC', '2JHH', '3JHH', '1JHN', '2JHN', '3JHN',]
 
 # TARGET_WL = ['fc', 'sd', 'pso', 'dso']
 TARGET_WL = ['fc']
@@ -39,52 +39,52 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 8000, # 8000-nek még van értelme fc-re
+    '_': 12000, # 8000-nek még van értelme fc-re
 }
 
 PARAMS = {
     '_': {
-        'num_leaves': 128,
-        'min_child_samples': 7,
+        'num_leaves': 512,
+        'min_child_samples': 12,
         'objective': 'regression',
-        'max_depth': 9,
-        'learning_rate': 0.1,
+        'max_depth': 12,
+        'learning_rate': 0.02,
         "boosting_type": "gbdt",
         "subsample_freq": 1,
-        "subsample": 1,
+        "subsample": 0.7,
         "bagging_seed": SEED,
         "metric": 'mae',
         "verbosity": -1,
-        'reg_alpha': 0.1,
+        'reg_alpha': 0.2,
         'reg_lambda': 0.3,
-        'colsample_bytree': 1.0
+        'colsample_bytree': 0.7
     },
-    '1JHN': {'subsample': 1, 'learning_rate': 0.05},
-    '2JHN': {'subsample': 1, 'learning_rate': 0.05},
-    '3JHN': {'subsample': 1, 'learning_rate': 0.05},
+    # '1JHN': {'subsample': 1, 'learning_rate': 0.05},
+    # '2JHN': {'subsample': 1, 'learning_rate': 0.05},
+    # '3JHN': {'subsample': 1, 'learning_rate': 0.05},
     # '1JHC': {'min_child_samples': 22},
 }
 
-train, test, structures, contributions = t5_load_data(INPUT_DIR)
-
-train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
-
-structures = t5_merge_yukawa(INPUT_DIR, structures)
-
-structures = t5_load_feature_crane(FEATURE_DIR, structures)
-
-train, test = t5_merge_structures(train, test, structures)
-
-t5_distance_feature(train, test)
-
-train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
+# train, test, structures, contributions = t5_load_data(INPUT_DIR)
+#
+# train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
+#
+# structures = t5_merge_yukawa(INPUT_DIR, structures)
+#
+# structures = t5_load_feature_crane(FEATURE_DIR, structures)
+#
+# train, test = t5_merge_structures(train, test, structures)
+#
+# t5_distance_feature(train, test)
+#
+# train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
 
 #
 # Save to and/or load from parquet
 #
-t5_to_parquet(WORK_DIR, train, test, structures, contributions)
+# t5_to_parquet(WORK_DIR, train, test, structures, contributions)
 
-# train, test, structures, contributions = t5_read_parquet(WORK_DIR)
+train, test, structures, contributions = t5_read_parquet(WORK_DIR)
 
 #
 # Edike :)
