@@ -32,8 +32,8 @@ np.random.seed(SEED)
 def t5_edgar_qcut(train, test):
     bin_size_map = {
         '1JHC': [1, 15, 75],
-        '2JHC': [7, 20, 100],
-        '3JHC': [9, 25, 125],
+        '2JHC': [1, 20, 100],
+        '3JHC': [1, 25, 125],
         '1JHN': [1, 2, 10],
         '2JHN': [1, 3, 15],
         '3JHN': [1, 5, 25], # mindegy, hogy 2,3,5 vagy 9! felé osztom. Akkor is -2.15 lesz, van egy rövid rész, ahol gyenge nagyon
