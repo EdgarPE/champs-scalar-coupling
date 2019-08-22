@@ -59,9 +59,9 @@ PARAMS = {
         'reg_lambda': 0.3,
         'colsample_bytree': 0.7
     },
-    # '1JHN': {'subsample': 1, 'learning_rate': 0.05},
-    # '2JHN': {'subsample': 1, 'learning_rate': 0.05},
-    # '3JHN': {'subsample': 1, 'learning_rate': 0.05},
+    '1JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05},
+    # '2JHN': {'subsample': 1, 'learning_rate': 0.02},
+    # '3JHN': {'subsample': 1, 'learning_rate': 0.02},
     # '1JHC': {'min_child_samples': 22},
 }
 
