@@ -101,7 +101,7 @@ train = t5_preprocess_data_mulliken(train, mulliken_charges)
 extra_cols = []
 extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
 X, X_test, labels = t5_prepare_columns(train, test, extra_cols)
-t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, 'qcut_subtype_0')
+t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, None)
 
 train = train[['molecule_name', 'atom_index_0', 'oof_mulliken_charge']].rename(columns={'atom_index_0': 'atom_index'})
 mean = train.groupby(['molecule_name', 'atom_index'])[['oof_mulliken_charge']].mean()

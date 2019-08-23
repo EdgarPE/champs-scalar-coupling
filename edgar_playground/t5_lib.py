@@ -1,12 +1,12 @@
+##### COPY__PASTE__LIB__BEGIN #####
 import numpy as np
 import pandas as pd
 import sys
 import psutil
 import os
 
-##### COPY__PASTE__LIB__BEGIN #####
-
 import time
+from datetime import datetime
 from numba import jit
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold, KFold, RepeatedKFold
@@ -79,7 +79,7 @@ def mean_log_mae(y_true, y_pred):
 
 
 def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_metric='mae', columns=None,
-                           plot_feature_importance=False, model=None,
+                           plot_feature_importance=None, model=None,
                            verbose=10000, early_stopping_rounds=200, n_estimators=50000):
     """
     A function to train a variety of regression models.
@@ -191,7 +191,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
 
         prediction += y_pred
 
-        if model_type == 'lgb' and plot_feature_importance:
+        if model_type == 'lgb' and plot_feature_importance is not None:
             # feature importance
             fold_importance = pd.DataFrame()
             fold_importance["feature"] = columns
@@ -208,17 +208,18 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     result_dict['scores'] = scores
 
     if model_type == 'lgb':
-        if plot_feature_importance:
+        if plot_feature_importance is not None:
             feature_importance["importance"] /= folds.n_splits
             cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(
-                by="importance", ascending=False)[:50].index
+                by="importance", ascending=False)[:80].index
 
             best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
 
             plt.figure(figsize=(16, 12))
-            sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False));
+            sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False))
             plt.title('LGB Features (avg over folds)')
-            plt.savefig(fname = sys.argv[0] + '.importance.png')
+            #plt.savefig(fname = sys.argv[0] + '.importance.png')
+            plt.savefig(fname=plot_feature_importance)
             plt.close()
             # plt.close('all')
 
@@ -636,40 +637,55 @@ def t5_read_parquet(work_dir):
     return train, test, structures, contributions
 
 
-def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, subtype_col = None):
-    for type_name in TYPE_WL:
-        _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
-        _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
-        t = labels['type'].transform([type_name])[0]
+def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, output_dir, train_filename, test_filename):
+    for target in TARGET_WL:
+        for type_name in TYPE_WL:
+            _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
+            _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
+            t = labels['type'].transform([type_name])[0]
 
-        for target in TARGET_WL:
             _N_ESTIMATORS = N_ESTIMATORS[type_name] if type_name in N_ESTIMATORS.keys() else N_ESTIMATORS['_']
             # _N_ESTIMATORS = _N_ESTIMATORS if target != 'fc' else _N_ESTIMATORS * 4
-            score_accumulator = []
 
-            subtype_col = subtype_col if subtype_col != None else 'qcut_subtype_0'
+            X_t = X.loc[X['type'] == t]
+            X_test_t = X_test.loc[X_test['type'] == t]
+            y_t = train.loc[train['type'] == t, target]
 
-            subtypes = np.sort(train.loc[(train['type'] == t), subtype_col].unique())
-            for st in subtypes:
-                X_t = X.loc[(X['type'] == t) & (X[subtype_col] == st)]
-                X_test_t = X_test.loc[(X_test['type'] == t) & (X_test[subtype_col] == st)]
-                y_t = train.loc[(train['type'] == t) & (train[subtype_col] == st), target]
+            folds = KFold(n_splits=_N_FOLD, shuffle=True, random_state=SEED)
 
-                folds = KFold(n_splits=_N_FOLD, shuffle=True, random_state=SEED)
+            print("Training of type %s, component '%s', train size: %d" % (type_name, target, len(y_t)))
 
-                print("Training of type %s, component '%s', subtype: (%d/%d) train size: %d" % (type_name, target, st, len(subtypes), len(y_t)))
+            now = datetime.now()
 
-                result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
-                                                             model_type='lgb', eval_metric='group_mae',
-                                                             plot_feature_importance=True,
-                                                             verbose=500, early_stopping_rounds=200,
-                                                             n_estimators=_N_ESTIMATORS)
+            plot_filename = f'{output_dir}/{target}_{type_name}_' + now.strftime('%m%d_%H%M') + '.png' if output_dir is not None else None
+            result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
+                                                         model_type='lgb', eval_metric='group_mae',
+                                                         plot_feature_importance=plot_filename,
+                                                         verbose=500, early_stopping_rounds=200,
+                                                         n_estimators=_N_ESTIMATORS)
 
-                train.loc[(train['type'] == t) & (train[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['oof']
-                test.loc[(test['type'] == t) & (test[subtype_col] == st), f'oof_{target}'] = result_dict_lgb_oof['prediction']
-                score_accumulator = score_accumulator + list(result_dict_lgb_oof['scores'])
+            train.loc[train['type'] == t, f'oof_{target}'] = result_dict_lgb_oof['oof']
+            test.loc[test['type'] == t, f'oof_{target}'] = result_dict_lgb_oof['prediction']
 
-            print('CV mean score [%s, %s]: %.4f, std: %.4f' % (type_name, target, np.mean(score_accumulator), np.std(score_accumulator)))
+            log_message = 'CV mean score [%s, %s]: %.4f, std: %.4f' % (type_name, target,
+                                                               np.mean(result_dict_lgb_oof['scores']),
+                                                               np.std(result_dict_lgb_oof['scores']))
+            print(log_message)
+
+            feature_importance = result_dict_lgb_oof['feature_importance']
+            cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(
+                by="importance", ascending=False)[:80].index
+            best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
+            print('Feature importances of type %s, component %s:' % (type_name, target))
+            print(best_features[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
+                                                                                                 ascending=False))
+
+            if output_dir is not None:
+                with open(output_dir + '/' + sys.argv[0] + '.log', 'a') as the_file:
+                    the_file.write('log_message\n')
+
+                train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{output_dir}/{train_filename}', index=False)
+                test[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{output_dir}/{test_filename}', index=False)
 
 
 def t5_learning_rate_010_decay_power_099(current_iter):

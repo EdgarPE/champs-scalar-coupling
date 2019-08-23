@@ -106,7 +106,5 @@ train = t5_merge_contributions(train, contributions)
 #
 X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1',
                                                                         'qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2'])
-t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
-
-train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5b_contributions_train.csv', index=False)
-test[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5b_contributions_test.csv', index=False)
+t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, OUTPUT_DIR,
+              't5b_contributions_train.csv', 't5b_contributions_test.csv')

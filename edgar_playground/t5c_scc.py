@@ -51,23 +51,20 @@ PARAMS = {
         'min_child_samples': 22,
         'objective': 'regression',
         'max_depth': 9,
-        'learning_rate': 0.1, # 0.2 volt itt :)
+        'learning_rate': 0.02,
         "boosting_type": "gbdt",
         "subsample_freq": 1,
-        "subsample": 1,
+        "subsample": 0.7,
         "bagging_seed": SEED,
         "metric": 'mae',
         "verbosity": -1,
-        'reg_alpha': 0.1,
+        'reg_alpha': 0.2,
         'reg_lambda': 0.3,
-        'colsample_bytree': 1.0
+        'colsample_bytree': 0.7
     },
-    '1JHN': {'subsample': 1, 'learning_rate': 0.05},
-    '2JHN': {'subsample': 1, 'learning_rate': 0.05},
-    '3JHN': {'subsample': 1, 'learning_rate': 0.05},
-    '1JHC': {'min_child_samples': 120},
-    # '2JHC': {'min_child_samples': 500, 'learning_rate': 0.2, 'num_leaves': 500, 'max_depth': 11},
-
+    '1JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05},
+    '2JHN': {'subsample': 1},
+    '3JHN': {'subsample': 1},
 }
 
 # train, test, structures, contributions = t5_load_data(INPUT_DIR)
@@ -121,8 +118,8 @@ extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
 extra_cols += ['fc', 'sd', 'pso', 'dso', 'contrib_sum']
 extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
 X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=extra_cols)
-t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels)
+t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, OUTPUT_DIR,
+              't5c_scc_train.csv', 't5c_scc_test.csv')
 
-train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5c_scc_train.csv', index=False)
 test.rename(inplace=True, columns={'oof_scalar_coupling_constant': 'scalar_coupling_constant'})
-test[['id'] + [f'{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5c_scc_test.csv', index=False)
+test[['id'] + [f'{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5c_submission.csv', index=False)
