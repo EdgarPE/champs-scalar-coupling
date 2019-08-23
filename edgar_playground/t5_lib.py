@@ -639,8 +639,9 @@ def t5_read_parquet(work_dir):
 
 def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, output_dir, train_filename, test_filename):
     for target in TARGET_WL:
-        train[target] = np.nan
-        test[target] = np.nan
+        train[f'oof_{target}'] = np.nan
+        test[f'oof_{target}'] = np.nan
+
         for type_name in TYPE_WL:
             _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
             _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
