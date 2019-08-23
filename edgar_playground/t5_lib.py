@@ -681,7 +681,7 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
                                                                                                  ascending=False))
 
             if output_dir is not None:
-                with open(output_dir + '/' + sys.argv[0] + '.log', 'a') as the_file:
+                with open(output_dir + '/log.log', 'a') as the_file:
                     the_file.write('log_message\n')
 
                 train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{output_dir}/{train_filename}', index=False)
