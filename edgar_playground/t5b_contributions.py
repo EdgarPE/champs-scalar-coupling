@@ -65,26 +65,28 @@ PARAMS = {
     # '1JHC': {'min_child_samples': 22},
 }
 
-# train, test, structures, contributions = t5_load_data(INPUT_DIR)
+train, test, structures, contributions = t5_load_data(INPUT_DIR)
+
+train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
+
+structures = t5_merge_yukawa(INPUT_DIR, structures)
+
+structures = t5_load_feature_crane(FEATURE_DIR, structures)
+
+train, test = t5_merge_structures(train, test, structures)
+
+t5_distance_feature(train, test)
+
+train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
 #
-# train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
-#
-# structures = t5_merge_yukawa(INPUT_DIR, structures)
-#
-# structures = t5_load_feature_crane(FEATURE_DIR, structures)
-#
-# train, test = t5_merge_structures(train, test, structures)
-#
-# t5_distance_feature(train, test)
-#
-# train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
+# train, test = t5_load_feature_giba(FEATURE_DIR, train, test)
 
 #
 # Save to and/or load from parquet
 #
 # t5_to_parquet(WORK_DIR, train, test, structures, contributions)
 
-train, test, structures, contributions = t5_read_parquet(WORK_DIR)
+# train, test, structures, contributions = t5_read_parquet(WORK_DIR)
 
 #
 # Edike :)
@@ -104,7 +106,11 @@ train = t5_merge_contributions(train, contributions)
 #
 # Predict contributions
 #
-X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=['mulliken_charge_0', 'mulliken_charge_1',
-                                                                        'qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2'])
+for c in train.columns: print(c)
+
+extra_cols = []
+extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
+extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
+X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=extra_cols)
 t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, OUTPUT_DIR,
               't5b_contributions_train.csv', 't5b_contributions_test.csv')

@@ -139,7 +139,10 @@ def t5_artgor_features(train, test):
 
         new_columns = set(df.columns.copy()) - old_columns
 
-        return df[new_columns]
+        result = df[new_columns]
+        result.columns = [f'artg_{c}' for c in result.columns]
+
+        return result
 
     return artgor_features(train), artgor_features(test)
 
@@ -151,10 +154,10 @@ t5_distance_feature(train, test)
 
 train_, test_ = t5_artgor_features(train, test)
 
-print(train_.shape)
-print(train_.dtypes.T)
-
 train_.to_csv(f'{OUTPUT_DIR}/artgor_train.csv', index=False)
 train_.to_parquet(f'{OUTPUT_DIR}/artgor_train.parquet', index=False)
 test_.to_csv(f'{OUTPUT_DIR}/artgor_test.csv', index=False)
 test_.to_parquet(f'{OUTPUT_DIR}/artgor_test.parquet', index=False)
+
+print(train_.shape)
+print(train_.dtypes.T)

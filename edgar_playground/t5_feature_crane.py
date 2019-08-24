@@ -123,15 +123,18 @@ def t5_crane_features(structures):
 
     new_columns = ['EN', 'rad', 'n_bonds', 'bond_lengths_median', 'bond_lengths_std', 'bond_lengths_mean']
 
-    return structures[new_columns]
+    result = structures[new_columns]
+    result.columns = [f'cran_{c}' for c in result.columns]
+
+    return result
 
 
 train, test, structures, contributions = t5_load_data(INPUT_DIR)
 
 crane = t5_crane_features(structures)
 
-# print(crane.shape)
-# print(crane.dtypes.T)
-
 crane.to_csv(f'{OUTPUT_DIR}/crane_structures.csv', index=False)
 crane.to_parquet(f'{OUTPUT_DIR}/crane_structures.parquet', index=False)
+
+print(crane.shape)
+print(crane.dtypes.T)

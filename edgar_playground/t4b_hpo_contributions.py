@@ -22,12 +22,12 @@ WORK_DIR = '../work/t4'
 OUTPUT_DIR = '../work/t4'
 
 # TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC']
+TYPE_WL = ['1JHN', '2JHN', '3JHC', '1JHN', '2JHN']
 
 # TARGET_WL = ['fc', 'sd', 'pso', 'dso']
 TARGET_WL = ['fc']
 
-SEED = 55
+SEED = 5656
 np.random.seed(SEED)
 
 N_FOLD = {
@@ -35,7 +35,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 3000, # 8000-nek még van értelme
+    '_': 600, # 8000-nek még van értelme
 }
 
 
@@ -81,14 +81,14 @@ from scipy.stats import uniform as sp_uniform
 
 SEARCH_PARAMS = {
     '_': {
-        # 'min_child_samples': sp_randint(25, 150),
+        'min_child_samples': sp_randint(2, 30),
         # 'num_leaves': [50, 100, 150, 200, 300, 500],
         # 'subsample': [0.2, 0.4, 0.6, 0.8, 0.9, 1],
-        'learning_rate': sp_uniform(loc=0.001, scale=0.20),
-        'subsample': sp_uniform(loc=0.4, scale=0.6),
-        'colsample_bytree': sp_uniform(loc=0.4, scale=0.6),
-        'reg_alpha': sp_uniform(loc=0.0, scale=0.5),
-        'reg_lambda': sp_uniform(loc=0.0, scale=0.6),
+        # 'learning_rate': sp_uniform(loc=0.001, scale=0.020),
+        'subsample': sp_uniform(loc=0.3, scale=0.7),
+        'colsample_bytree': sp_uniform(loc=0.3, scale=0.7),
+        'reg_alpha': sp_uniform(loc=0.0, scale=0.4),
+        'reg_lambda': sp_uniform(loc=0.0, scale=0.4),
     },
 }
 
@@ -193,13 +193,13 @@ for type_name in TYPE_WL:
         #                                              n_estimators=_N_ESTIMATORS)
 
         #This parameter defines the number of HP points to be tested
-        n_HP_points_to_test = 24
+        n_HP_points_to_test = 40
 
         #n_estimators is set to a "large value". The actual number of trees build will depend on early stopping and 5000 define only the absolute maximum
         clf = lgb.LGBMRegressor(random_state=SEED, silent=True, metric='mae', n_jobs=-1, n_estimators=_N_ESTIMATORS,
                                 max_depth=12, objective='regression', num_leaves=512, boosting_type='gbdt',
                                 subsample_freq=1, bagging_seed=SEED, verbosity=-1,
-                                min_child_samples=7) # colsample_bytree=1.0,  reg_alpha=0.1,  reg_lambda=0.3, subsample=1, learning_rate=0.1,
+                                learning_rate=0.02) # min_child_samples=7, colsample_bytree=1.0,  reg_alpha=0.1,  reg_lambda=0.3, subsample=1, learning_rate=0.1,
 
         gs = RandomizedSearchCV(
             estimator=clf, param_distributions=_SEARCH_PARAMS,

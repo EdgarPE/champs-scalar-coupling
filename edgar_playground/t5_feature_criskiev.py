@@ -235,9 +235,13 @@ print(train.dtypes.T)
 
 train, test = t5_criskiev_features_improve(train, test)
 
-print(train.dtypes.T)
+for df in [train, test]:
+    df.columns = [f'cris_{c}' for c in df.columns]
 
 train.to_csv(f'{OUTPUT_DIR}/criskiev_train.csv', index=False)
 train.to_parquet(f'{OUTPUT_DIR}/criskiev_train.parquet', index=False)
 test.to_csv(f'{OUTPUT_DIR}/criskiev_test.csv', index=False)
 test.to_parquet(f'{OUTPUT_DIR}/criskiev_test.parquet', index=False)
+
+print(train.shape)
+print(train.dtypes.T)

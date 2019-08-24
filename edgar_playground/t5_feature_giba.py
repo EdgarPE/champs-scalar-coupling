@@ -51,6 +51,9 @@ for dataset in ['train', 'test']:
     category = ['NC', 'NH', 'NN', 'NF', 'NO']
     giba[category] = giba[category].astype('category')
 
+    # giba.rename(columns={c: f'giba_{c}' for c in giba.columns}, inplace=True)
+    giba.columns = [f'giba_{c}' for c in giba.columns]
+
     # print(giba.dtypes.T)
     # print(giba.describe().T)
     # print(disp_mem_usage())

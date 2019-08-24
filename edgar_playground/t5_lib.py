@@ -282,9 +282,17 @@ def t5_load_feature_artgor(feature_dir, train_, test_):
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
 
+def t5_load_feature_giba(feature_dir, train_, test_):
+    train = pd.read_parquet(feature_dir + '/giba/train_giba.parquet')
+    test = pd.read_parquet(feature_dir + '/giba/test_giba.parquet')
+
+    return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
+
+
 # https://www.kaggle.com/scaomath/parallelization-of-coulomb-yukawa-interaction
 def t5_merge_yukawa(input_dir, structures):
     yukawa = pd.read_csv(input_dir + '/yukawa/structures_yukawa.csv').astype('float32')
+    yukawa.columns = [f'yuka_{c}' for c in yukawa.columns]
     structures = pd.concat([structures, yukawa], axis=1)
 
     return structures
@@ -499,80 +507,97 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
         # 'bond_lengths_std_y',
         # 'bond_lengths_mean_x',
 
-        'molecule_atom_index_0_dist_min',
-        'molecule_atom_index_0_dist_max',
-        'molecule_atom_index_1_dist_min',
-        'molecule_atom_index_0_dist_mean',
-        'molecule_atom_index_0_dist_std',
+        'artg_molecule_atom_index_0_dist_min',
+        'artg_molecule_atom_index_0_dist_max',
+        'artg_molecule_atom_index_1_dist_min',
+        'artg_molecule_atom_index_0_dist_mean',
+        'artg_molecule_atom_index_0_dist_std',
+
         'dist',
         'dist_lin',
         'subtype',
-        'molecule_atom_index_1_dist_std',
-        'molecule_atom_index_1_dist_max',
-        'molecule_atom_index_1_dist_mean',
-        'molecule_atom_index_0_dist_max_diff',
-        'molecule_atom_index_0_dist_max_div',
-        'molecule_atom_index_0_dist_std_diff',
-        'molecule_atom_index_0_dist_std_div',
-        'atom_0_couples_count',
-        'molecule_atom_index_0_dist_min_div',
-        'molecule_atom_index_1_dist_std_diff',
-        'molecule_atom_index_0_dist_mean_div',
-        'atom_1_couples_count',
-        'molecule_atom_index_0_dist_mean_diff',
-        'molecule_couples',
+
+        'artg_molecule_atom_index_1_dist_std',
+        'artg_molecule_atom_index_1_dist_max',
+        'artg_molecule_atom_index_1_dist_mean',
+        'artg_molecule_atom_index_0_dist_max_diff',
+        'artg_molecule_atom_index_0_dist_max_div',
+        'artg_molecule_atom_index_0_dist_std_diff',
+        'artg_molecule_atom_index_0_dist_std_div',
+        'artg_atom_0_couples_count',
+        'artg_molecule_atom_index_0_dist_min_div',
+        'artg_molecule_atom_index_1_dist_std_diff',
+        'artg_molecule_atom_index_0_dist_mean_div',
+        'artg_atom_1_couples_count',
+        'artg_molecule_atom_index_0_dist_mean_diff',
+        'artg_molecule_couples',
+
         'atom_index_1',
-        'molecule_dist_mean',
-        'molecule_atom_index_1_dist_max_diff',
-        'molecule_atom_index_0_y_1_std',
-        'molecule_atom_index_1_dist_mean_diff',
-        'molecule_atom_index_1_dist_std_div',
-        'molecule_atom_index_1_dist_mean_div',
-        'molecule_atom_index_1_dist_min_diff',
-        'molecule_atom_index_1_dist_min_div',
-        'molecule_atom_index_1_dist_max_div',
-        'molecule_atom_index_0_z_1_std',
+
+        'artg_molecule_dist_mean',
+        'artg_molecule_atom_index_1_dist_max_diff',
+        'artg_molecule_atom_index_0_y_1_std',
+        'artg_molecule_atom_index_1_dist_mean_diff',
+        'artg_molecule_atom_index_1_dist_std_div',
+        'artg_molecule_atom_index_1_dist_mean_div',
+        'artg_molecule_atom_index_1_dist_min_diff',
+        'artg_molecule_atom_index_1_dist_min_div',
+        'artg_molecule_atom_index_1_dist_max_div',
+        'artg_molecule_atom_index_0_z_1_std',
+
         'y_0',
-        'molecule_type_dist_std_diff',
-        'molecule_atom_1_dist_min_diff',
-        'molecule_atom_index_0_x_1_std',
-        'molecule_dist_min',
-        'molecule_atom_index_0_dist_min_diff',
-        'molecule_atom_index_0_y_1_mean_diff',
-        'molecule_type_dist_min',
-        'molecule_atom_1_dist_min_div',
+
+        'artg_molecule_type_dist_std_diff',
+        'artg_molecule_atom_1_dist_min_diff',
+        'artg_molecule_atom_index_0_x_1_std',
+        'artg_molecule_dist_min',
+        'artg_molecule_atom_index_0_dist_min_diff',
+        'artg_molecule_atom_index_0_y_1_mean_diff',
+        'artg_molecule_type_dist_min',
+        'artg_molecule_atom_1_dist_min_div',
+
         'atom_index_0',
-        'molecule_dist_max',
-        'molecule_atom_1_dist_std_diff',
-        'molecule_type_dist_max',
-        'molecule_atom_index_0_y_1_max_diff',
-        'molecule_type_0_dist_std_diff',
-        'molecule_type_dist_mean_diff',
-        'molecule_atom_1_dist_mean',
-        'molecule_atom_index_0_y_1_mean_div',
-        'molecule_type_dist_mean_div',
+
+        'artg_molecule_dist_max',
+        'artg_molecule_atom_1_dist_std_diff',
+        'artg_molecule_type_dist_max',
+        'artg_molecule_atom_index_0_y_1_max_diff',
+        'artg_molecule_type_0_dist_std_diff',
+        'artg_molecule_type_dist_mean_diff',
+        'artg_molecule_atom_1_dist_mean',
+        'artg_molecule_atom_index_0_y_1_mean_div',
+        'artg_molecule_type_dist_mean_div',
 
         'type',
 
-        # Crane
-        'dist_C_0_a0', 'dist_C_1_a0', 'dist_C_2_a0', 'dist_C_3_a0', 'dist_C_4_a0', 'dist_F_0_a0', 'dist_F_1_a0',
-        'dist_F_2_a0', 'dist_F_3_a0', 'dist_F_4_a0', 'dist_H_0_a0', 'dist_H_1_a0', 'dist_H_2_a0', 'dist_H_3_a0',
-        'dist_H_4_a0', 'dist_N_0_a0', 'dist_N_1_a0', 'dist_N_2_a0', 'dist_N_3_a0', 'dist_N_4_a0', 'dist_O_0_a0',
-        'dist_O_1_a0', 'dist_O_2_a0', 'dist_O_3_a0', 'dist_O_4_a0',
-        'EN_a0', 'rad_a0', 'n_bonds_a0', 'bond_lengths_mean_a0', 'bond_lengths_std_a0', 'bond_lengths_median_a0',
+        # Yukawa
+        'yuka_dist_C_0_a0', 'yuka_dist_C_1_a0', 'yuka_dist_C_2_a0', 'yuka_dist_C_3_a0', 'yuka_dist_C_4_a0',
+        'yuka_dist_F_0_a0', 'yuka_dist_F_1_a0', 'yuka_dist_F_2_a0', 'yuka_dist_F_3_a0', 'yuka_dist_F_4_a0',
+        'yuka_dist_H_0_a0', 'yuka_dist_H_1_a0', 'yuka_dist_H_2_a0', 'yuka_dist_H_3_a0', 'yuka_dist_H_4_a0',
+        'yuka_dist_N_0_a0', 'yuka_dist_N_1_a0', 'yuka_dist_N_2_a0', 'yuka_dist_N_3_a0', 'yuka_dist_N_4_a0',
+        'yuka_dist_O_0_a0', 'yuka_dist_O_1_a0', 'yuka_dist_O_2_a0', 'yuka_dist_O_3_a0', 'yuka_dist_O_4_a0',
 
-        'dist_C_0_a1', 'dist_C_1_a1', 'dist_C_2_a1', 'dist_C_3_a1', 'dist_C_4_a1', 'dist_F_0_a1', 'dist_F_1_a1',
-        'dist_F_2_a1', 'dist_F_3_a1', 'dist_F_4_a1', 'dist_H_0_a1', 'dist_H_1_a1', 'dist_H_2_a1', 'dist_H_3_a1',
-        'dist_H_4_a1', 'dist_N_0_a1', 'dist_N_1_a1', 'dist_N_2_a1', 'dist_N_3_a1', 'dist_N_4_a1', 'dist_O_0_a1',
-        'dist_O_1_a1', 'dist_O_2_a1', 'dist_O_3_a1', 'dist_O_4_a1',
-        'EN_a1', 'rad_a1', 'n_bonds_a1', 'bond_lengths_mean_a1', 'bond_lengths_std_a1', 'bond_lengths_median_a1',
+        'yuka_dist_C_0_a1', 'yuka_dist_C_1_a1', 'yuka_dist_C_2_a1', 'yuka_dist_C_3_a1', 'yuka_dist_C_4_a1',
+        'yuka_dist_F_0_a1', 'yuka_dist_F_1_a1', 'yuka_dist_F_2_a1', 'yuka_dist_F_3_a1', 'yuka_dist_F_4_a1',
+        'yuka_dist_H_0_a1', 'yuka_dist_H_1_a1', 'yuka_dist_H_2_a1', 'yuka_dist_H_3_a1', 'yuka_dist_H_4_a1',
+        'yuka_dist_N_0_a1', 'yuka_dist_N_1_a1', 'yuka_dist_N_2_a1', 'yuka_dist_N_3_a1', 'yuka_dist_N_4_a1',
+        'yuka_dist_O_0_a1', 'yuka_dist_O_1_a1', 'yuka_dist_O_2_a1', 'yuka_dist_O_3_a1', 'yuka_dist_O_4_a1',
+
+        # Crane
+        'cran_EN_a0', 'cran_rad_a0', 'cran_n_bonds_a0', 'cran_bond_lengths_mean_a0', 'cran_bond_lengths_std_a0',
+        'cran_bond_lengths_median_a0',
+        'cran_EN_a1', 'cran_rad_a1', 'cran_n_bonds_a1', 'cran_bond_lengths_mean_a1', 'cran_bond_lengths_std_a1',
+        'cran_bond_lengths_median_a1',
 
         # Criskiev
-        'atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7', 'atom_8', 'atom_9', 'd_2_0', 'd_2_1', # 'd_1_0'
-        'd_3_0', 'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3', 'd_5_0', 'd_5_1', 'd_5_2', 'd_5_3', 'd_6_0',
-        'd_6_1', 'd_6_2', 'd_6_3', 'd_7_0', 'd_7_1', 'd_7_2', 'd_7_3', 'd_8_0', 'd_8_1', 'd_8_2', 'd_8_3', 'd_9_0',
-        'd_9_1', 'd_9_2', 'd_9_3',
-        'd_2_min', 'd_3_min', 'd_4_min', 'd_5_min', 'd_6_min', 'd_7_min', 'd_8_min', 'd_9_min',
+        # 'd_1_0'
+        'cris_atom_2', 'cris_atom_3', 'cris_atom_4', 'cris_atom_5', 'cris_atom_6', 'cris_atom_7', 'cris_atom_8',
+        'cris_atom_9', 'cris_d_2_0', 'cris_d_2_1', 'cris_d_3_0', 'cris_d_3_1', 'cris_d_3_2', 'cris_d_4_0', 'cris_d_4_1',
+        'cris_d_4_2', 'cris_d_4_3', 'cris_d_5_0', 'cris_d_5_1', 'cris_d_5_2', 'cris_d_5_3', 'cris_d_6_0', 'cris_d_6_1',
+        'cris_d_6_2', 'cris_d_6_3', 'cris_d_7_0', 'cris_d_7_1', 'cris_d_7_2', 'cris_d_7_3', 'cris_d_8_0', 'cris_d_8_1',
+        'cris_d_8_2', 'cris_d_8_3', 'cris_d_9_0', 'cris_d_9_1', 'cris_d_9_2', 'cris_d_9_3',
+        'cris_d_2_min', 'cris_d_3_min', 'cris_d_4_min', 'cris_d_5_min', 'cris_d_6_min', 'cris_d_7_min', 'cris_d_8_min',
+        'cris_d_9_min',
 
         # Criskiev extra
         # 'd_1_0_log', 'd_2_0_log', 'd_2_1_log', 'd_3_0_log', 'd_3_1_log', 'd_3_2_log', 'd_4_0_log', 'd_4_1_log',
@@ -584,6 +609,23 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
         # 'd_4_2_recp', 'd_4_3_recp', 'd_5_0_recp', 'd_5_1_recp', 'd_5_2_recp', 'd_5_3_recp', 'd_6_0_recp', 'd_6_1_recp',
         # 'd_6_2_recp', 'd_6_3_recp', 'd_7_0_recp', 'd_7_1_recp', 'd_7_2_recp', 'd_7_3_recp', 'd_8_0_recp', 'd_8_1_recp',
         # 'd_8_2_recp', 'd_8_3_recp', 'd_9_0_recp', 'd_9_1_recp', 'd_9_2_recp', 'd_9_3'
+
+        # Giba
+        # 'giba_typei', 'giba_N1', 'giba_N2', 'giba_link0', 'giba_link1', 'giba_linkN', 'giba_dist_xyz', 'giba_inv_dist0',
+        # 'giba_inv_dist1', 'giba_inv_distP', 'giba_R0', 'giba_R1', 'giba_E0', 'giba_E1', 'giba_inv_dist0R',
+        # 'giba_inv_dist1R', 'giba_inv_distPR', 'giba_inv_dist0E', 'giba_inv_dist1E', 'giba_inv_distPE', 'giba_linkM0',
+        # 'giba_linkM1', 'giba_min_molecule_atom_0_dist_xyz', 'giba_mean_molecule_atom_0_dist_xyz',
+        # 'giba_max_molecule_atom_0_dist_xyz', 'giba_sd_molecule_atom_0_dist_xyz', 'giba_min_molecule_atom_1_dist_xyz',
+        # 'giba_mean_molecule_atom_1_dist_xyz', 'giba_max_molecule_atom_1_dist_xyz', 'giba_sd_molecule_atom_1_dist_xyz',
+        # 'giba_coulomb_C.x', 'giba_coulomb_F.x', 'giba_coulomb_H.x', 'giba_coulomb_N.x', 'giba_coulomb_O.x',
+        # 'giba_yukawa_C.x', 'giba_yukawa_F.x', 'giba_yukawa_H.x', 'giba_yukawa_N.x', 'giba_yukawa_O.x',
+        # 'giba_vander_C.x', 'giba_vander_F.x', 'giba_vander_H.x', 'giba_vander_N.x', 'giba_vander_O.x',
+        # 'giba_coulomb_C.y', 'giba_coulomb_F.y', 'giba_coulomb_H.y', 'giba_coulomb_N.y', 'giba_coulomb_O.y',
+        # 'giba_yukawa_C.y', 'giba_yukawa_F.y', 'giba_yukawa_H.y', 'giba_yukawa_N.y', 'giba_yukawa_O.y',
+        # 'giba_vander_C.y', 'giba_vander_F.y', 'giba_vander_H.y', 'giba_vander_N.y', 'giba_vander_O.y', 'giba_distC0',
+        # 'giba_distH0', 'giba_distN0', 'giba_distC1', 'giba_distH1', 'giba_distN1', 'giba_adH1', 'giba_adH2',
+        # 'giba_adH3', 'giba_adH4', 'giba_adC1', 'giba_adC2', 'giba_adC3', 'giba_adC4', 'giba_adN1', 'giba_adN2',
+        # 'giba_adN3', 'giba_adN4', 'giba_NC', 'giba_NH', 'giba_NN', 'giba_NF', 'giba_NO',
     ]
 
     good_columns += (good_columns_extra if good_columns_extra is not None else [])
