@@ -344,7 +344,10 @@ for mol_type in mol_types:
     df_test_ = take_n_atoms(full2, 11)
     df_train_  = df_train_.fillna(0)
     df_test_  = df_test_.fillna(0)
-    
+
+    print(df_train_.dtypes.T)
+    print(df_train_.describe().T)
+
     # Standard Scaler from sklearn does seem to work better here than other Scalers
     input_data=StandardScaler().fit_transform(pd.concat([df_train_.loc[:,input_features],df_test_.loc[:,input_features]]))   
     #input_data=StandardScaler().fit_transform(df_train_.loc[:,input_features])
