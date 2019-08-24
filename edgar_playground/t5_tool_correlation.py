@@ -61,19 +61,19 @@ print(test.shape)
 
 desc = train.describe()
 desc.to_csv(f'{WORK_DIR}/t5_describe_train.csv', index=False)
-desc.to_parquet(f'{WORK_DIR}/t5_describe_train.csv', index=False)
+desc.to_parquet(f'{WORK_DIR}/t5_describe_train.parquet', index=False)
 
 desc = test.describe()
 desc.to_csv(f'{WORK_DIR}/t5_describe_test.csv', index=False)
 desc.to_parquet(f'{WORK_DIR}/t5_describe_test.parquet', index=False)
 
-# corr = train.corr()
-# corr.to_csv(f'{WORK_DIR}/t5_correlation_train.csv', index=False)
-# corr.to_parquet(f'{WORK_DIR}/t5_correlation_train.parquet', index=False)
-#
-# corr = test.corr()
-# corr.to_csv(f'{WORK_DIR}/t5_correlation_test.csv', index=False)
-# corr.to_parquet(f'{WORK_DIR}/t5_correlation_test.parquet', index=False)
+corr = train.corr()
+corr.to_csv(f'{WORK_DIR}/t5_correlation_train.csv', index=False)
+corr.to_parquet(f'{WORK_DIR}/t5_correlation_train.parquet', index=False)
+
+corr = test.corr()
+corr.to_csv(f'{WORK_DIR}/t5_correlation_test.csv', index=False)
+corr.to_parquet(f'{WORK_DIR}/t5_correlation_test.parquet', index=False)
 
 train.fillna(-10000)
 test.fillna(-10000)
@@ -82,21 +82,10 @@ corr = train.corr()
 corr.to_csv(f'{WORK_DIR}/t5_correlation_fillna_train.csv', index=False)
 corr.to_parquet(f'{WORK_DIR}/t5_correlation_fillna_train.parquet', index=False)
 
-# Select upper triangle of correlation matrix
-upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(np.bool))
-# Find index of feature columns with correlation greater than 0.95
-to_drop = [column for column in upper.columns if any(upper[column] > 0.99)]
-print(to_drop)
-
 corr = test.corr()
 corr.to_csv(f'{WORK_DIR}/t5_correlation_fillna_test.csv', index=False)
 corr.to_parquet(f'{WORK_DIR}/t5_correlation_fillna_test.parquet', index=False)
 
-# Select upper triangle of correlation matrix
-upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(np.bool))
-# Find index of feature columns with correlation greater than 0.95
-to_drop = [column for column in upper.columns if any(upper[column] > 0.99)]
-print(to_drop)
 
 exit(0)
 
