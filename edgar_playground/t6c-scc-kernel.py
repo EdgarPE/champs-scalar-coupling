@@ -1,3 +1,18 @@
+#  --- HOME ---
+INPUT_DIR = '../input/'
+YUKAWA_DIR = '../input/yukawa'
+FEATURE_DIR = '../feature/t6'
+WORK_DIR = '../work/t6'
+OUTPUT_DIR = '../work/t6'
+
+#  --- KAGGLE ---
+INPUT_DIR = '../input/champs-scalar-coupling'
+YUKAWA_DIR = '../input/parallelization-of-coulomb-yukawa-interaction'
+FEATURE_DIR = '../input/t6-features-parquet/t6_features_parquet'
+WORK_DIR = '../input/t4abc-ua/t4_ua'
+OUTPUT_DIR = '.'
+
+
 # This Python 3 environment comes with many helpful analytics libraries installed
 # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
 # For example, here's several helpful packages to load in
@@ -24,6 +39,7 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import inspect
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -35,7 +51,6 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import psutil
-##### COPY__PASTE__LIB__BEGIN #####
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -55,22 +70,16 @@ from keras import callbacks
 from keras import backend as K
 
 
+##### COPY__PASTE__LIB__BEGIN #####
+def lineno():
+    """Returns the current line number in our program."""
+    return '[Line: %d]' % inspect.currentframe().f_back.f_lineno
+
+
 def disp_mem_usage():
     # print(psutil.virtual_memory())  # physical memory usage
-    print('[Memory] % 7.3f GB' % (psutil.Process(os.getpid()).memory_info()[0] / 2. ** 30))
-
-
-def map_atom_info(df, atom_idx, structures):
-    df = pd.merge(df, structures, how='left',
-                  left_on=['molecule_name', f'atom_index_{atom_idx}'],
-                  right_on=['molecule_name', 'atom_index'], suffixes=["_a0", "_a1"])
-
-    df = df.drop('atom_index', axis=1)
-    df = df.rename(columns={'atom': f'atom_{atom_idx}',
-                            'x': f'x_{atom_idx}',
-                            'y': f'y_{atom_idx}',
-                            'z': f'z_{atom_idx}'})
-    return df
+    print('[Memory, at line: %d] % 7.3f GB' % (
+    inspect.currentframe().f_back.f_lineno, psutil.Process(os.getpid()).memory_info()[0] / 2. ** 30))
 
 
 def t6_load_data(input_dir):
@@ -117,9 +126,15 @@ def t6_load_submissions(input_dir):
     return submissions
 
 
-def t6_load_feature_criskiev(feature_dir, train_, test_):
-    train = pd.read_parquet(feature_dir + '/criskiev/criskiev_train.parquet')
-    test = pd.read_parquet(feature_dir + '/criskiev/criskiev_test.parquet')
+def t6_load_feature_criskiev(feature_dir, train_, test_, train_selector, test_selector):
+    train = pd.read_parquet(feature_dir + '/criskiev/criskiev_train.parquet')[train_selector]
+    test = pd.read_parquet(feature_dir + '/criskiev/criskiev_test.parquet')[test_selector]
+
+    int8 = ['cris_atom_2', 'cris_atom_3', 'cris_atom_4', 'cris_atom_5', 'cris_atom_6', 'cris_atom_7', 'cris_atom_8',
+            'cris_atom_9']
+
+    train[int8] = train[int8].astype('int8')
+    test[int8] = test[int8].astype('int8')
 
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
@@ -130,9 +145,9 @@ def t6_load_feature_crane(feature_dir, structures):
     return structures.join(crane)
 
 
-def t6_load_feature_artgor(feature_dir, train_, test_):
-    train = pd.read_parquet(feature_dir + '/artgor/artgor_train.parquet')
-    test = pd.read_parquet(feature_dir + '/artgor/artgor_test.parquet')
+def t6_load_feature_artgor(feature_dir, train_, test_, train_selector, test_selector):
+    train = pd.read_parquet(feature_dir + '/artgor/artgor_train.parquet')[train_selector]
+    test = pd.read_parquet(feature_dir + '/artgor/artgor_test.parquet')[test_selector]
 
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
@@ -153,9 +168,9 @@ def t6_merge_yukawa(input_dir, structures):
     return structures
 
 
-def t6_load_feature_edgar(feature_dir, train_, test_):
-    train = pd.read_parquet(feature_dir + '/edgar/edgar_train.parquet')
-    test = pd.read_parquet(feature_dir + '/edgar/edgar_test.parquet')
+def t6_load_feature_edgar(feature_dir, train_, test_, train_selector, test_selector):
+    train = pd.read_parquet(feature_dir + '/edgar/edgar_train.parquet')[train_selector].astype('int8')
+    test = pd.read_parquet(feature_dir + '/edgar/edgar_test.parquet')[test_selector].astype('int8')
 
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
@@ -190,8 +205,8 @@ def t6_load_data_magnetic_st(input_dir):
     return magnetic_st
 
 
-def t6_load_data_mulliken_oof(work_dir, train, test):
-    mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_train.csv')
+def t6_load_data_mulliken_oof(work_dir, train, test, train_selector, test_selector):
+    mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_train.csv')[train_selector]
 
     float32 = ['oof_mulliken_charge']
     mulliken_charges[float32] = mulliken_charges[float32].astype('float32')
@@ -208,7 +223,7 @@ def t6_load_data_mulliken_oof(work_dir, train, test):
     train.drop('atom_index', axis=1, inplace=True)
     train.rename(inplace=True, columns={'oof_mulliken_charge': 'mulliken_charge_1'})
 
-    mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_test.csv')
+    mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_test.csv')[test_selector]
 
     float32 = ['oof_mulliken_charge']
     mulliken_charges[float32] = mulliken_charges[float32].astype('float32')
@@ -243,8 +258,8 @@ def t6_merge_contributions(train, contributions):
     return train
 
 
-def t6_load_data_contributions_oof(work_dir, train, test):
-    oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_train.csv')
+def t6_load_data_contributions_oof(work_dir, train, test, train_selector, test_selector):
+    oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_train.csv')[train_selector]
 
     float32 = ['oof_fc', 'oof_sd', 'oof_pso', 'oof_dso']
     oof_contributions[float32] = oof_contributions[float32].astype('float32')
@@ -260,7 +275,7 @@ def t6_load_data_contributions_oof(work_dir, train, test):
     })
     train['contrib_sum'] = train['fc'] + train['sd'] + train['pso'] + train['dso']
 
-    oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_test.csv')
+    oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_test.csv')[test_selector]
 
     float32 = ['oof_fc', 'oof_sd', 'oof_pso', 'oof_dso']
     oof_contributions[float32] = oof_contributions[float32].astype('float32')
@@ -279,12 +294,27 @@ def t6_load_data_contributions_oof(work_dir, train, test):
     return train, test
 
 
-def t6_merge_structures(train, test, structures):
-    train = map_atom_info(train, 0, structures)
-    train = map_atom_info(train, 1, structures)
+def map_atom_info(df, atom_idx, structures):
+    df = pd.merge(df, structures, how='left',
+                  left_on=['molecule_name', f'atom_index_{atom_idx}'],
+                  right_on=['molecule_name', 'atom_index'], suffixes=["_a0", "_a1"])
 
-    test = map_atom_info(test, 0, structures)
+    df = df.drop('atom_index', axis=1)
+    df = df.rename(columns={'atom': f'atom_{atom_idx}',
+                            'x': f'x_{atom_idx}',
+                            'y': f'y_{atom_idx}',
+                            'z': f'z_{atom_idx}'})
+    return df
+
+
+def t6_merge_structures(train_, test_, structures):
+    train = map_atom_info(train_, 0, structures)
+    train = map_atom_info(train, 1, structures)
+    train.index = train_.index
+
+    test = map_atom_info(test_, 0, structures)
     test = map_atom_info(test, 1, structures)
+    test.index = test_.index
 
     train_p_0 = train[['x_0', 'y_0', 'z_0']].values
     train_p_1 = train[['x_1', 'y_1', 'z_1']].values
@@ -325,8 +355,8 @@ def t6_distance_feature(train, test):
     train['dist_z'] = (train['z_0'] - train['z_1']) ** 2
     test['dist_z'] = (test['z_0'] - test['z_1']) ** 2
 
-    train['type_0'] = train['type'].apply(lambda x: x[0])
-    test['type_0'] = test['type'].apply(lambda x: x[0])
+    # train['type_0'] = train['type'].apply(lambda x: x[0])
+    # test['type_0'] = test['type'].apply(lambda x: x[0])
 
     train['subtype'] = (train['type'].eq('1JHC') & train['dist_lin'].gt(1.065)).astype('int8')
     test['subtype'] = (test['type'].eq('1JHC') & test['dist_lin'] > 1.065).astype('int8')
@@ -339,83 +369,83 @@ def t6_prepare_columns(train, test, good_columns_extra=None):
         # 'bond_lengths_std_y',
         # 'bond_lengths_mean_x',
 
-        #         'artg_molecule_atom_index_0_dist_min',
-        #         'artg_molecule_atom_index_0_dist_max',
-        #         'artg_molecule_atom_index_1_dist_min',
-        #         'artg_molecule_atom_index_0_dist_mean',
-        #         'artg_molecule_atom_index_0_dist_std',
+        'artg_molecule_atom_index_0_dist_min',
+        'artg_molecule_atom_index_0_dist_max',
+        'artg_molecule_atom_index_1_dist_min',
+        'artg_molecule_atom_index_0_dist_mean',
+        'artg_molecule_atom_index_0_dist_std',
 
-        #         'artg_molecule_atom_index_1_dist_std',
-        #         'artg_molecule_atom_index_1_dist_max',
-        #         'artg_molecule_atom_index_1_dist_mean',
-        #         'artg_molecule_atom_index_0_dist_max_diff',
-        #         'artg_molecule_atom_index_0_dist_max_div',
-        #         'artg_molecule_atom_index_0_dist_std_diff',
-        #         'artg_molecule_atom_index_0_dist_std_div',
-        #         'artg_atom_0_couples_count',
-        #         'artg_molecule_atom_index_0_dist_min_div',
-        #         'artg_molecule_atom_index_1_dist_std_diff',
-        #         'artg_molecule_atom_index_0_dist_mean_div',
-        #         'artg_atom_1_couples_count',
-        #         'artg_molecule_atom_index_0_dist_mean_diff',
-        #         'artg_molecule_couples',
+        'artg_molecule_atom_index_1_dist_std',
+        'artg_molecule_atom_index_1_dist_max',
+        'artg_molecule_atom_index_1_dist_mean',
+        'artg_molecule_atom_index_0_dist_max_diff',
+        'artg_molecule_atom_index_0_dist_max_div',
+        'artg_molecule_atom_index_0_dist_std_diff',
+        'artg_molecule_atom_index_0_dist_std_div',
+        'artg_atom_0_couples_count',
+        'artg_molecule_atom_index_0_dist_min_div',
+        'artg_molecule_atom_index_1_dist_std_diff',
+        'artg_molecule_atom_index_0_dist_mean_div',
+        'artg_atom_1_couples_count',
+        'artg_molecule_atom_index_0_dist_mean_diff',
+        'artg_molecule_couples',
 
-        #         'artg_molecule_dist_mean',
-        #         'artg_molecule_atom_index_1_dist_max_diff',
-        #         'artg_molecule_atom_index_0_y_1_std',
-        #         'artg_molecule_atom_index_1_dist_mean_diff',
-        #         'artg_molecule_atom_index_1_dist_std_div',
-        #         'artg_molecule_atom_index_1_dist_mean_div',
-        #         'artg_molecule_atom_index_1_dist_min_diff',
-        #         'artg_molecule_atom_index_1_dist_min_div',
-        #         'artg_molecule_atom_index_1_dist_max_div',
-        #         'artg_molecule_atom_index_0_z_1_std',
+        'artg_molecule_dist_mean',
+        'artg_molecule_atom_index_1_dist_max_diff',
+        'artg_molecule_atom_index_0_y_1_std',
+        'artg_molecule_atom_index_1_dist_mean_diff',
+        'artg_molecule_atom_index_1_dist_std_div',
+        'artg_molecule_atom_index_1_dist_mean_div',
+        'artg_molecule_atom_index_1_dist_min_diff',
+        'artg_molecule_atom_index_1_dist_min_div',
+        'artg_molecule_atom_index_1_dist_max_div',
+        'artg_molecule_atom_index_0_z_1_std',
 
-        #         'artg_molecule_type_dist_std_diff',
-        #         'artg_molecule_atom_1_dist_min_diff',
-        #         'artg_molecule_atom_index_0_x_1_std',
-        #         'artg_molecule_dist_min',
-        #         'artg_molecule_atom_index_0_dist_min_diff',
-        #         'artg_molecule_atom_index_0_y_1_mean_diff',
-        #         'artg_molecule_type_dist_min',
-        #         'artg_molecule_atom_1_dist_min_div',
+        'artg_molecule_type_dist_std_diff',
+        'artg_molecule_atom_1_dist_min_diff',
+        'artg_molecule_atom_index_0_x_1_std',
+        'artg_molecule_dist_min',
+        'artg_molecule_atom_index_0_dist_min_diff',
+        'artg_molecule_atom_index_0_y_1_mean_diff',
+        'artg_molecule_type_dist_min',
+        'artg_molecule_atom_1_dist_min_div',
 
-        #         'artg_molecule_dist_max',
-        #         'artg_molecule_atom_1_dist_std_diff',
-        #         'artg_molecule_type_dist_max',
-        #         'artg_molecule_atom_index_0_y_1_max_diff',
-        #         'artg_molecule_type_0_dist_std_diff',
-        #         'artg_molecule_type_dist_mean_diff',
-        #         'artg_molecule_atom_1_dist_mean',
-        #         'artg_molecule_atom_index_0_y_1_mean_div',
-        #         'artg_molecule_type_dist_mean_div',
+        'artg_molecule_dist_max',
+        'artg_molecule_atom_1_dist_std_diff',
+        'artg_molecule_type_dist_max',
+        'artg_molecule_atom_index_0_y_1_max_diff',
+        'artg_molecule_type_0_dist_std_diff',
+        'artg_molecule_type_dist_mean_diff',
+        'artg_molecule_atom_1_dist_mean',
+        'artg_molecule_atom_index_0_y_1_mean_div',
+        'artg_molecule_type_dist_mean_div',
 
-        #         'atom_index_0',
-        #         'atom_index_1',
-        'type',
-        #         'y_0',
+        # 'atom_index_0',
+        # 'atom_index_1',
+        # 'type',
+        # 'y_0',
         'dist',
         'dist_lin',
-        #         'subtype',
+        # 'subtype',
 
         # Yukawa
-        #         'yuka_dist_C_0_a0', 'yuka_dist_C_1_a0', 'yuka_dist_C_2_a0', 'yuka_dist_C_3_a0', 'yuka_dist_C_4_a0',
-        #         'yuka_dist_F_0_a0', 'yuka_dist_F_1_a0', 'yuka_dist_F_2_a0', 'yuka_dist_F_3_a0', 'yuka_dist_F_4_a0',
-        #         'yuka_dist_H_0_a0', 'yuka_dist_H_1_a0', 'yuka_dist_H_2_a0', 'yuka_dist_H_3_a0', 'yuka_dist_H_4_a0',
-        #         'yuka_dist_N_0_a0', 'yuka_dist_N_1_a0', 'yuka_dist_N_2_a0', 'yuka_dist_N_3_a0', 'yuka_dist_N_4_a0',
-        #         'yuka_dist_O_0_a0', 'yuka_dist_O_1_a0', 'yuka_dist_O_2_a0', 'yuka_dist_O_3_a0', 'yuka_dist_O_4_a0',
+        'yuka_dist_C_0_a0', 'yuka_dist_C_1_a0', 'yuka_dist_C_2_a0', 'yuka_dist_C_3_a0', 'yuka_dist_C_4_a0',
+        'yuka_dist_F_0_a0', 'yuka_dist_F_1_a0', 'yuka_dist_F_2_a0', 'yuka_dist_F_3_a0', 'yuka_dist_F_4_a0',
+        'yuka_dist_H_0_a0', 'yuka_dist_H_1_a0', 'yuka_dist_H_2_a0', 'yuka_dist_H_3_a0', 'yuka_dist_H_4_a0',
+        'yuka_dist_N_0_a0', 'yuka_dist_N_1_a0', 'yuka_dist_N_2_a0', 'yuka_dist_N_3_a0', 'yuka_dist_N_4_a0',
+        'yuka_dist_O_0_a0', 'yuka_dist_O_1_a0', 'yuka_dist_O_2_a0', 'yuka_dist_O_3_a0', 'yuka_dist_O_4_a0',
 
-        #         'yuka_dist_C_0_a1', 'yuka_dist_C_1_a1', 'yuka_dist_C_2_a1', 'yuka_dist_C_3_a1', 'yuka_dist_C_4_a1',
-        #         'yuka_dist_F_0_a1', 'yuka_dist_F_1_a1', 'yuka_dist_F_2_a1', 'yuka_dist_F_3_a1', 'yuka_dist_F_4_a1',
-        #         'yuka_dist_H_0_a1', 'yuka_dist_H_1_a1', 'yuka_dist_H_2_a1', 'yuka_dist_H_3_a1', 'yuka_dist_H_4_a1',
-        #         'yuka_dist_N_0_a1', 'yuka_dist_N_1_a1', 'yuka_dist_N_2_a1', 'yuka_dist_N_3_a1', 'yuka_dist_N_4_a1',
-        #         'yuka_dist_O_0_a1', 'yuka_dist_O_1_a1', 'yuka_dist_O_2_a1', 'yuka_dist_O_3_a1', 'yuka_dist_O_4_a1',
+        'yuka_dist_C_0_a1', 'yuka_dist_C_1_a1', 'yuka_dist_C_2_a1', 'yuka_dist_C_3_a1', 'yuka_dist_C_4_a1',
+        'yuka_dist_F_0_a1', 'yuka_dist_F_1_a1', 'yuka_dist_F_2_a1', 'yuka_dist_F_3_a1', 'yuka_dist_F_4_a1',
+        'yuka_dist_H_0_a1', 'yuka_dist_H_1_a1', 'yuka_dist_H_2_a1', 'yuka_dist_H_3_a1', 'yuka_dist_H_4_a1',
+        'yuka_dist_N_0_a1', 'yuka_dist_N_1_a1', 'yuka_dist_N_2_a1', 'yuka_dist_N_3_a1', 'yuka_dist_N_4_a1',
+        'yuka_dist_O_0_a1', 'yuka_dist_O_1_a1', 'yuka_dist_O_2_a1', 'yuka_dist_O_3_a1', 'yuka_dist_O_4_a1',
 
         # Crane
-        'cran_EN_a0', 'cran_rad_a0', 'cran_n_bonds_a0', 'cran_bond_lengths_mean_a0', 'cran_bond_lengths_std_a0',
-        'cran_bond_lengths_median_a0',
-        'cran_EN_a1', 'cran_rad_a1', 'cran_n_bonds_a1', 'cran_bond_lengths_mean_a1', 'cran_bond_lengths_std_a1',
-        'cran_bond_lengths_median_a1',
+        # 'cran_EN_a0', 'cran_rad_a0', 'cran_n_bonds_a0', 'cran_bond_lengths_mean_a0', 'cran_bond_lengths_std_a0',
+        # 'cran_bond_lengths_median_a0',
+        # 'cran_EN_a1', 'cran_rad_a1', 'cran_n_bonds_a1', 'cran_bond_lengths_mean_a1', 'cran_bond_lengths_std_a1',
+        # 'cran_bond_lengths_median_a1',
 
         # Criskiev
         # 'd_1_0'
@@ -458,20 +488,10 @@ def t6_prepare_columns(train, test, good_columns_extra=None):
 
     good_columns += (good_columns_extra if good_columns_extra is not None else [])
 
-    labels = {}
-    for f in ['atom_1', 'type_0', 'type']:
-        if f in good_columns:
-            lbl = LabelEncoder()
-            lbl.fit(list(train[f].values) + list(test[f].values))
-            train[f] = lbl.transform(list(train[f].values))
-            test[f] = lbl.transform(list(test[f].values))
-
-            labels[f] = lbl
-
     X = train[good_columns].copy()
     X_test = test[good_columns].copy()
 
-    return X, X_test, labels
+    return X, X_test  # labels
 
 
 def t6_to_parquet(work_dir, train, test, structures, contributions):
@@ -518,114 +538,6 @@ def reduce_mem_usage(df, verbose=True):
     return df
 
 
-##### COPY__PASTE__LIB__END #####
-
-
-INPUT_DIR = '../input/champs-scalar-coupling'
-# INPUT_DIR = '../work/subsample_5000'
-
-YUKAWA_DIR = '../input/parallelization-of-coulomb-yukawa-interaction'
-
-# FEATURE_DIR = '.'
-FEATURE_DIR = '../input/t6-features-parquet/t6_features_parquet'
-
-# WORK_DIR= '.'
-WORK_DIR = '../input/t4abc-ua/t4_ua'
-
-OUTPUT_DIR = '.'
-# OUTPUT_DIR = '../work/t6'
-
-TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC', ]
-# TYPE_WL = ['3JHC', '2JHC', '1JHC', '3JHH', '2JHH', '3JHN', '2JHN', '1JHN' ]
-
-# TARGET_WL = ['fc', 'sd', 'pso', 'dso']
-TARGET_WL = ['scalar_coupling_constant']
-
-SEED = 55
-np.random.seed(SEED)
-
-cv_score = []
-cv_score_total = 0
-epoch_n = 500
-verbose = 0
-batch_size = 2048
-
-# N_FOLD = {
-#     '_': 5, # mint UA
-# }
-
-
-# ATOMIC_NUMBERS = {
-#     'H': 1,
-#     'C': 6,
-#     'N': 7,
-#     'O': 8,
-#     'F': 9
-# }
-
-
-train, test, structures = t6_load_data(INPUT_DIR)
-
-train, test = t6_load_feature_criskiev(FEATURE_DIR, train, test)
-
-# structures = t6_merge_yukawa(YUKAWA_DIR, structures)
-
-structures = t6_load_feature_crane(FEATURE_DIR, structures)
-
-train, test = t6_merge_structures(train, test, structures)
-
-t6_distance_feature(train, test)
-
-reduce_mem_usage(train)
-reduce_mem_usage(test)
-gc.collect()
-
-# train, test = t6_load_feature_artgor(FEATURE_DIR, train, test)
-
-#
-# Save to and/or load from parquet
-#
-# t6_to_parquet(WORK_DIR, train, test, structures, contributions)
-
-# train, test, structures, contributions = t6_read_parquet(WORK_DIR)
-
-disp_mem_usage()
-print(train.shape)
-
-#
-# Edike :)
-#
-train, test = t6_load_feature_edgar(FEATURE_DIR, train, test)
-
-disp_mem_usage()
-print(train.shape)
-
-#
-# Load Phase 1. OOF data Mulliken charge
-#
-train, test = t6_load_data_mulliken_oof(WORK_DIR, train, test)
-
-disp_mem_usage()
-print(train.shape)
-
-#
-# Load Phase 2. OOF data Contributions (fc, sd, pso, dso)
-#
-train, test = t6_load_data_contributions_oof(WORK_DIR, train, test)
-
-disp_mem_usage()
-print(train.shape)
-
-extra_cols = []
-extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
-extra_cols += ['fc', 'sd', 'pso', 'dso', 'contrib_sum']
-extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
-X, X_test, labels = t6_prepare_columns(train, test, good_columns_extra=extra_cols)
-
-disp_mem_usage()
-print(X.shape, X_test.shape)
-
-
 def create_nn_model(input_shape):
     inp = Input(shape=(input_shape,))
     x = Dense(2048, activation="relu")(inp)
@@ -659,6 +571,23 @@ def plot_history(history, label):
     plt.show()
 
 
+##### COPY__PASTE__LIB__END #####
+
+# TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC', ]
+TYPE_WL = ['3JHC', '2JHC', '1JHC', '3JHH', '2JHH', '3JHN', '2JHN', '1JHN' ]
+
+# TARGET_WL = ['fc', 'sd', 'pso', 'dso']
+TARGET_WL = ['scalar_coupling_constant']
+
+SEED = 55
+np.random.seed(SEED)
+
+cv_score = []
+cv_score_total = 0
+epoch_n = 500
+verbose = 1
+batch_size = 2048
+
 # Set up GPU preferences
 config = tf.ConfigProto(device_count={'GPU': 1, 'CPU': 2})
 config.gpu_options.allow_growth = True
@@ -666,70 +595,121 @@ config.gpu_options.per_process_gpu_memory_fraction = 0.6
 sess = tf.Session(config=config)
 K.set_session(sess)
 
-# Set to True if we want to train from scratch.  False will reuse saved models as a starting point.
-retrain = True
-
 start_time = datetime.now()
-test_prediction = np.zeros(len(X_test))
-# input_features = ['atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7',
-#                   'atom_8', 'atom_9', 'atom_10', 'd_1_0', 'd_2_0', 'd_2_1', 'd_3_0',
-#                   'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3', 'd_5_0',
-#                   'd_5_1', 'd_5_2', 'd_5_3', 'd_6_0', 'd_6_1', 'd_6_2', 'd_6_3',
-#                   'd_7_0', 'd_7_1', 'd_7_2', 'd_7_3', 'd_8_0', 'd_8_1', 'd_8_2',
-#                   'd_8_3', 'd_9_0', 'd_9_1', 'd_9_2', 'd_9_3', 'd_10_0', 'd_10_1', 'd_10_2',
-#                   'd_10_3']
+
+submission = t6_load_submissions(INPUT_DIR)
 
 # Loop through each molecule type
 for type_name in TYPE_WL:
     gc.collect()
+
+    train, test, structures = t6_load_data(INPUT_DIR)
+    print(lineno(), train.shape)
+
+    train_selector = train['type'] == type_name
+    test_selector = test['type'] == type_name
+    train = train[train_selector]
+    test = test[test_selector]
+
+    target_data = train.loc[train_selector, 'scalar_coupling_constant'].values
+
+    structures = t6_merge_yukawa(YUKAWA_DIR, structures)
+
+    # structures = t6_load_feature_crane(FEATURE_DIR, structures)
+
+    train, test = t6_merge_structures(train, test, structures)
+
+    disp_mem_usage()
+    del structures
+    reduce_mem_usage(train)
+    reduce_mem_usage(test)
+    gc.collect()
     disp_mem_usage()
 
-    t = labels['type'].transform([type_name])[0]
+    train, test = t6_load_feature_criskiev(FEATURE_DIR, train, test, train_selector, test_selector)
+    disp_mem_usage()
 
-    model_name_wrt = (f'{OUTPUT_DIR}/t6_model_%s.hdf5' % type_name)
+    t6_distance_feature(train, test)
+    disp_mem_usage()
+
+    train, test = t6_load_feature_artgor(FEATURE_DIR, train, test, train_selector, test_selector)
+    disp_mem_usage()
+
+    # train, test = t6_load_feature_edgar(FEATURE_DIR, train, test, train_selector, test_selector)
+    # disp_mem_usage()
+    # print(train.shape, test.shape)
+
+    #
+    # Load Phase 1. OOF data Mulliken charge
+    #
+    train, test = t6_load_data_mulliken_oof(WORK_DIR, train, test, train_selector, test_selector)
+    disp_mem_usage()
+
+    #
+    # Load Phase 2. OOF data Contributions (fc, sd, pso, dso)
+    #
+    train, test = t6_load_data_contributions_oof(WORK_DIR, train, test, train_selector, test_selector)
+    disp_mem_usage()
+
+    # to_drop = ['type']
+    # train.drop(columns=to_drop, inplace=True)
+    # test.drop(columns=to_drop, inplace=True)
+
+    extra_cols = []
+    extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
+    extra_cols += ['fc', 'sd', 'pso', 'dso', 'contrib_sum']
+    # extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
+    X_learn, X_predict = t6_prepare_columns(train, test, good_columns_extra=extra_cols)
+    del train, test
+    gc.collect()
+    disp_mem_usage()
+
+    test_prediction = np.zeros(len(X_predict))
+
     print('Training %s' % type_name, 'out of', TYPE_WL, '\n')
 
-    df_train_ = X[train['type'] == t]
-    df_test_ = X_test[test['type'] == t]
-    df_train_ = df_train_.fillna(0)
-    df_test_ = df_test_.fillna(0)
-    input_features = list(X.columns)
+    X_learn = X_learn.fillna(0)
+    X_predict = X_predict.fillna(0)
+    input_features = list(X_learn.columns)
+
+    # pd.set_option('display.max_rows', 500)
+    # print(df_train_.dtypes.T)
+
+    # print(lineno(), type_name)
+    # is_nan = df_train_.isin([np.nan]).any(0)
+    # print(list(df_train_.loc[:,is_nan].columns))
+    # is_minf = df_train_.isin([-np.inf]).any(0)
+    # print(list(df_train_.loc[:,is_minf].columns))
+    # is_pinf = df_train_.isin([np.inf]).any(0)
+    # print(list(df_train_.loc[:,is_pinf].columns))
+
+    for df in [X_learn, X_predict]:
+        df[df.isin([np.nan, -np.inf, np.inf])] = 0
 
     # Standard Scaler from sklearn does seem to work better here than other Scalers
     input_data = StandardScaler().fit_transform(
-        pd.concat([df_train_.loc[:, input_features], df_test_.loc[:, input_features]]))
+        pd.concat([X_learn.loc[:, input_features], X_predict.loc[:, input_features]]))
     # input_data=StandardScaler().fit_transform(df_train_.loc[:,input_features])
-    target_data = train.loc[train['type'] == t, "scalar_coupling_constant"].values
-
-    #     disp_mem_usage()
-    #     print(input_data.shape)
-    #     print(target_data.shape)
 
     # Simple split to provide us a validation set to do our CV checks with
-    train_index, cv_index = train_test_split(np.arange(len(df_train_)), random_state=SEED, test_size=0.1)
+    train_index, cv_index = train_test_split(np.arange(len(X_learn)), random_state=SEED, test_size=0.1)
     # Split all our input and targets by train and cv indexes
     train_target = target_data[train_index]
     cv_target = target_data[cv_index]
     train_input = input_data[train_index]
     cv_input = input_data[cv_index]
-    test_input = input_data[len(df_train_):, :]
+    test_input = input_data[len(X_learn):, :]
 
-    #     disp_mem_usage()
-    #     print(input_data.shape)
-    #     print(train_input.shape)
-    #     print(train_target.shape)
-    #     print(cv_input.shape)
-    #     print(cv_target.shape)
+    del X_learn, X_predict
+    gc.collect()
 
     # Build the Neural Net
     nn_model = create_nn_model(train_input.shape[1])
 
-    # If retrain==False, then we load a previous saved model as a starting point.
-    if not retrain:
-        # nn_model = load_model(model_name_rd)
-        pass
-
     nn_model.compile(loss='mae', optimizer=Adam())  # , metrics=[auc])
+
+    gc.collect()
+    disp_mem_usage()
 
     # Callback for Early Stopping... May want to raise the min_delta for small numbers of epochs
     es = callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=40, verbose=1, mode='auto',
@@ -737,7 +717,6 @@ for type_name in TYPE_WL:
     # Callback for Reducing the Learning Rate... when the monitor levels out for 'patience' epochs, then the LR is reduced
     rlr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=30, min_lr=1e-6, mode='auto', verbose=1)
     # Save the best value of the model for future use
-    #     sv_mod = callbacks.ModelCheckpoint(model_name_wrt, monitor='val_loss', save_best_only=True, period=1)
     history = nn_model.fit(train_input, [train_target],
                            validation_data=(cv_input, [cv_target]),
                            callbacks=[es, rlr], epochs=epoch_n, batch_size=batch_size, verbose=verbose)
@@ -746,15 +725,26 @@ for type_name in TYPE_WL:
 
     # plot_history(history, mol_type)
     accuracy = np.mean(np.abs(cv_target - cv_predict[:, 0]))
-    print(np.log(accuracy))
+    print('CV for %s: %.4f' % (type_name, np.log(accuracy)))
     cv_score.append(np.log(accuracy))
     cv_score_total += np.log(accuracy)
 
     # Predict on the test data set using our trained model
     test_predict = nn_model.predict(test_input)
 
+    del input_data, target_data
+    del train_target, cv_target, train_input, cv_input
+    del nn_model
+    gc.collect()
+
     # for each molecule type we'll grab the predicted values
-    test_prediction[test["type"] == t] = test_predict[:, 0]
+    # test_prediction[test["type"] == t] = test_predict[:, 0]
+    # print(lineno(), submission.shape)
+    # print(lineno(), test_selector.shape)
+    # print(lineno(), submission[test_selector].shape)
+    # print(lineno(), test_predict.shape)
+    # print(lineno(), test_prediction.shape)
+    submission.loc[test_selector, 'scalar_coupling_constant'] = test_predict
     K.clear_session()
 
 cv_score_total /= len(TYPE_WL)
@@ -770,13 +760,6 @@ print("total cv score is", cv_score_total)
 # print(type(test_prediction))
 print(test_prediction.shape)
 
-
-def submits(predictions):
-    submit = t6_load_submissions(INPUT_DIR)
-    submit["scalar_coupling_constant"] = predictions
-    submit.to_csv(f'{OUTPUT_DIR}/t6c_scc.csv', index=False)
-
-
-submits(test_prediction)
+submission.to_csv(f'{OUTPUT_DIR}/t6c_scc.csv', index=False)
 
 # Add more layers to get a better score! However,maybe,features are really more important than algorithms...
