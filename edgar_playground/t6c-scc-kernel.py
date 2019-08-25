@@ -17,9 +17,6 @@ OUTPUT_DIR = '.'
 # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
 # For example, here's several helpful packages to load in
 
-import numpy as np  # linear algebra
-import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
-
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory
 
@@ -48,8 +45,6 @@ warnings.filterwarnings(action="ignore", category=FutureWarning)
 # pd.set_option('display.max_rows', 500)
 from datetime import datetime
 
-import numpy as np
-import pandas as pd
 import psutil
 
 import matplotlib.pyplot as plt

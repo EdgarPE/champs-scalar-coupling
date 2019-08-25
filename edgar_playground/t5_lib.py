@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import sys
 import psutil
+import inspect
 import os
 
 import time
@@ -19,9 +20,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
+def lineno():
+    """Returns the current line number in our program."""
+    return '[Line: %d]' % inspect.currentframe().f_back.f_lineno
+
+
 def disp_mem_usage():
     # print(psutil.virtual_memory())  # physical memory usage
-    print('[Memory] % 7.3f GB' % (psutil.Process(os.getpid()).memory_info()[0] / 2. ** 30))
+    print('[Memory, at line: %d] % 7.3f GB' % (
+        inspect.currentframe().f_back.f_lineno, psutil.Process(os.getpid()).memory_info()[0] / 2. ** 30))
 
 
 def map_atom_info(df, atom_idx, structures):
@@ -69,6 +76,7 @@ def group_mean_log_mae(y_true, y_pred, types, floor=1e-9):
     """
     maes = (y_true - y_pred).abs().groupby(types).mean()
     return np.log(maes.map(lambda x: max(x, floor))).mean()
+
 
 def mean_log_mae(y_true, y_pred):
     """
@@ -218,7 +226,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
             plt.figure(figsize=(16, 12))
             sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False))
             plt.title('LGB Features (avg over folds)')
-            #plt.savefig(fname = sys.argv[0] + '.importance.png')
+            # plt.savefig(fname = sys.argv[0] + '.importance.png')
             plt.savefig(fname=plot_feature_importance)
             plt.close()
             # plt.close('all')
@@ -298,6 +306,33 @@ def t5_merge_yukawa(input_dir, structures):
     return structures
 
 
+# https://www.kaggle.com/scaomath/qm7-coulomb-matrix-eigenvalue-features/output
+# 'atom_index','connectedness','coulomb_mean','eigv_gap','eigv_max','eigv_min','fiedler_eig','molecule_name','sv_0','sv_1','sv_2','sv_3','sv_4','sv_min'
+def t5_merge_qm7eigen(input_dir, structures):
+    dtype = {
+        'atom_index': 'int32',
+        'connectedness': 'int32',
+        'coulomb_mean': 'float32',
+        'eigv_gap': 'float32',
+        'eigv_max': 'float32',
+        'eigv_min': 'float32',
+        'fiedler_eig': 'float32',
+        'molecule_name': 'float32',
+        'sv_0': 'float32',
+        'sv_1': 'float32',
+        'sv_2': 'float32',
+        'sv_3': 'float32',
+        'sv_4': 'float32',
+        'sv_min': 'float32',
+    }
+    qm7eigen = pd.read_csv(input_dir + '/yukawa/structures_yukawa.csv', dtype=dtype)
+    qm7eigen.drop(columns=['atom_index', 'connectedness'])
+    qm7eigen.columns = [f'qm7e_{c}' for c in qm7eigen.columns]
+    structures = pd.concat([structures, qm7eigen], axis=1)
+
+    return structures
+
+
 def t5_load_feature_edgar(feature_dir, train_, test_):
     train = pd.read_parquet(feature_dir + '/edgar/edgar_train.parquet')
     test = pd.read_parquet(feature_dir + '/edgar/edgar_test.parquet')
@@ -368,6 +403,7 @@ def t5_load_data_mulliken_oof(work_dir, train, test):
 def t5_load_data_magnetic_st_oof(work_dir, train, test):
     # todo
     pass
+
 
 def t5_merge_contributions(train, contributions):
     train = pd.merge(train, contributions, how='left',
@@ -626,6 +662,11 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
         # 'giba_distH0', 'giba_distN0', 'giba_distC1', 'giba_distH1', 'giba_distN1', 'giba_adH1', 'giba_adH2',
         # 'giba_adH3', 'giba_adH4', 'giba_adC1', 'giba_adC2', 'giba_adC3', 'giba_adC4', 'giba_adN1', 'giba_adN2',
         # 'giba_adN3', 'giba_adN4', 'giba_NC', 'giba_NH', 'giba_NN', 'giba_NF', 'giba_NO',
+
+        # QM7 eigen
+        'qm7e_coulomb_mean', 'qm7e_eigv_gap', 'qm7e_eigv_max', 'qm7e_eigv_min', 'qm7e_fiedler_eig',
+        'qm7e_molecule_name', 'qm7e_sv_0', 'qm7e_sv_1', 'qm7e_sv_2', 'qm7e_sv_3', 'qm7e_sv_4', 'qm7e_sv_min'
+
     ]
 
     good_columns += (good_columns_extra if good_columns_extra is not None else [])
@@ -679,7 +720,8 @@ def t5_read_parquet(work_dir):
     return train, test, structures, contributions
 
 
-def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, output_dir, train_filename, test_filename):
+def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, output_dir,
+                  train_filename, test_filename):
     for target in TARGET_WL:
         train[f'oof_{target}'] = np.nan
         test[f'oof_{target}'] = np.nan
@@ -703,7 +745,8 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
 
             now = datetime.now()
 
-            plot_filename = f'{output_dir}/{target}_{type_name}_' + now.strftime('%m%d_%H%M') + '.png' if output_dir is not None else None
+            plot_filename = f'{output_dir}/{target}_{type_name}_' + now.strftime(
+                '%m%d_%H%M') + '.png' if output_dir is not None else None
             result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
                                                          model_type='lgb', eval_metric='group_mae',
                                                          plot_feature_importance=plot_filename,
@@ -714,8 +757,8 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
             test.loc[test['type'] == t, f'oof_{target}'] = result_dict_lgb_oof['prediction']
 
             log_message = 'CV mean score [%s, %s]: %.4f, std: %.4f' % (type_name, target,
-                                                               np.mean(result_dict_lgb_oof['scores']),
-                                                               np.std(result_dict_lgb_oof['scores']))
+                                                                       np.mean(result_dict_lgb_oof['scores']),
+                                                                       np.std(result_dict_lgb_oof['scores']))
             print(log_message)
 
             feature_importance = result_dict_lgb_oof['feature_importance']

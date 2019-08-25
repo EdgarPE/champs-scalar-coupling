@@ -34,23 +34,19 @@ SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 3,
+    '_': 5, # mint UA
 }
 
 N_ESTIMATORS = {
     '_': 1000,
-    # '1JHC': 6000,
-    # '2JHC': 4000,
-    # '3JHC': 6000,
-    # '1JHN': 6000,
 }
 
 PARAMS = {
     '_': {
-        'num_leaves': 128,
-        'min_child_samples': 22,
+        'num_leaves': 512,
+        'min_child_samples': 12,
         'objective': 'regression',
-        'max_depth': 9,
+        'max_depth': 12,
         'learning_rate': 0.02,
         "boosting_type": "gbdt",
         "subsample_freq": 1,
@@ -63,23 +59,26 @@ PARAMS = {
         'colsample_bytree': 0.7
     },
     '1JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05},
-    '2JHN': {'subsample': 1},
-    '3JHN': {'subsample': 1},
+    # '2JHN': {'subsample': 1, 'learning_rate': 0.02},
+    # '3JHN': {'subsample': 1, 'learning_rate': 0.02},
+    # '1JHC': {'min_child_samples': 22},
 }
 
-# train, test, structures, contributions = t5_load_data(INPUT_DIR)
-#
-# train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
-#
-# structures = t5_merge_yukawa(INPUT_DIR, structures)
-#
-# structures = t5_load_feature_crane(FEATURE_DIR, structures)
-#
-# train, test = t5_merge_structures(train, test, structures)
-#
-# t5_distance_feature(train, test)
-#
-# train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
+train, test, structures, contributions = t5_load_data(INPUT_DIR)
+
+structures = t5_merge_yukawa(INPUT_DIR, structures)
+
+structures = t5_merge_qm7eigen(INPUT_DIR, structures)
+
+structures = t5_load_feature_crane(FEATURE_DIR, structures)
+
+train, test = t5_merge_structures(train, test, structures)
+
+t5_distance_feature(train, test)
+
+train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
+
+train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
 
 #
 # Save to and/or load from parquet
