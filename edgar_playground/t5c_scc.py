@@ -25,8 +25,8 @@ WORK_DIR = '../work/t5'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['3JHC', '2JHN']
+TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+# TYPE_WL = ['1JHN', '2JHN']
 
 TARGET_WL = ['scalar_coupling_constant']
 

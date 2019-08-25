@@ -803,9 +803,9 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
             cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(
                 by="importance", ascending=False)[:80].index
             best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
-            print('Feature importances of type %s, component %s:' % (type_name, target))
-            print(best_features[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
-                                                                                                 ascending=False))
+            # print('Feature importances of type %s, component %s:' % (type_name, target))
+            # print(best_features[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
+            #                                                                                      ascending=False))
 
             if output_dir is not None:
                 with open(output_dir + '/log.log', 'a') as the_file:
