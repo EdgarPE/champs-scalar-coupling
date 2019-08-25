@@ -9,7 +9,7 @@ OUTPUT_DIR = '../work/t6'
 INPUT_DIR = '../input/champs-scalar-coupling'
 YUKAWA_DIR = '../input/parallelization-of-coulomb-yukawa-interaction'
 FEATURE_DIR = '../input/t6-features-parquet/t6_features_parquet'
-WORK_DIR = '../input/t4abc-ua/t4_ua'
+WORK_DIR = '../input/t5-0825-contribfull'
 OUTPUT_DIR = '.'
 
 
@@ -201,7 +201,7 @@ def t6_load_data_magnetic_st(input_dir):
 
 
 def t6_load_data_mulliken_oof(work_dir, train, test, train_selector, test_selector):
-    mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_train.csv')[train_selector]
+    mulliken_charges = pd.read_csv(work_dir + '/t5a_mulliken_train.csv')[train_selector]
 
     float32 = ['oof_mulliken_charge']
     mulliken_charges[float32] = mulliken_charges[float32].astype('float32')
@@ -218,7 +218,7 @@ def t6_load_data_mulliken_oof(work_dir, train, test, train_selector, test_select
     train.drop('atom_index', axis=1, inplace=True)
     train.rename(inplace=True, columns={'oof_mulliken_charge': 'mulliken_charge_1'})
 
-    mulliken_charges = pd.read_csv(work_dir + '/t4a_mulliken_test.csv')[test_selector]
+    mulliken_charges = pd.read_csv(work_dir + '/t5a_mulliken_test.csv')[test_selector]
 
     float32 = ['oof_mulliken_charge']
     mulliken_charges[float32] = mulliken_charges[float32].astype('float32')
@@ -254,7 +254,7 @@ def t6_merge_contributions(train, contributions):
 
 
 def t6_load_data_contributions_oof(work_dir, train, test, train_selector, test_selector):
-    oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_train.csv')[train_selector]
+    oof_contributions = pd.read_csv(work_dir + '/t5b_contributions_train.csv')[train_selector]
 
     float32 = ['oof_fc', 'oof_sd', 'oof_pso', 'oof_dso']
     oof_contributions[float32] = oof_contributions[float32].astype('float32')
@@ -270,7 +270,7 @@ def t6_load_data_contributions_oof(work_dir, train, test, train_selector, test_s
     })
     train['contrib_sum'] = train['fc'] + train['sd'] + train['pso'] + train['dso']
 
-    oof_contributions = pd.read_csv(work_dir + '/t4b_contributions_test.csv')[test_selector]
+    oof_contributions = pd.read_csv(work_dir + '/t5b_contributions_test.csv')[test_selector]
 
     float32 = ['oof_fc', 'oof_sd', 'oof_pso', 'oof_dso']
     oof_contributions[float32] = oof_contributions[float32].astype('float32')
@@ -568,8 +568,8 @@ def plot_history(history, label):
 
 ##### COPY__PASTE__LIB__END #####
 
-# TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC', ]
-TYPE_WL = ['3JHC', '2JHC', '1JHC', '3JHH', '2JHH', '3JHN', '2JHN', '1JHN' ]
+TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC', ]
+# TYPE_WL = ['3JHC', '2JHC', '1JHC', '3JHH', '2JHH', '3JHN', '2JHN', '1JHN' ]
 
 # TARGET_WL = ['fc', 'sd', 'pso', 'dso']
 TARGET_WL = ['scalar_coupling_constant']
@@ -579,8 +579,8 @@ np.random.seed(SEED)
 
 cv_score = []
 cv_score_total = 0
-epoch_n = 500
-verbose = 1
+epoch_n = 100
+verbose = 0
 batch_size = 2048
 
 # Set up GPU preferences
