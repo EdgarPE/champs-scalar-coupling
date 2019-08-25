@@ -113,7 +113,7 @@ def t6_load_feature_giba(feature_dir, train_, test_):
 
 # https://www.kaggle.com/scaomath/parallelization-of-coulomb-yukawa-interaction
 def t6_merge_yukawa(input_dir, structures):
-    yukawa = pd.read_csv(input_dir + '/yukawa/structures_yukawa.csv').astype('float32')
+    yukawa = pd.read_csv(input_dir + '/structures_yukawa.csv').astype('float32')
     yukawa.columns = [f'yuka_{c}' for c in yukawa.columns]
     structures = pd.concat([structures, yukawa], axis=1)
 

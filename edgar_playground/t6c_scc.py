@@ -20,6 +20,8 @@ from edgar_playground.t6_lib import *
 INPUT_DIR = '../input'
 # INPUT_DIR = '../work/subsample_5000'
 
+YUKAWA_DIR = '../input/yukawa/'
+
 # FEATURE_DIR = '.'
 FEATURE_DIR = '../feature/t6'
 
@@ -30,7 +32,7 @@ WORK_DIR = '../work/t6'
 OUTPUT_DIR = '../work/t6'
 
 # TYPE_WL = ['2JHH', '3JHH', '1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', ]
-TYPE_WL = ['1JHN', ]
+TYPE_WL = ['1JHN', '2JHN' ]
 
 # TARGET_WL = ['fc', 'sd', 'pso', 'dso']
 TARGET_WL = ['scalar_coupling_constant']
@@ -72,7 +74,7 @@ train_dtypes = {
 #
 # train, test = t6_load_feature_criskiev(FEATURE_DIR, train, test)
 #
-# structures = t6_merge_yukawa(INPUT_DIR, structures)
+# structures = t6_merge_yukawa(YUKAWA_DIR, structures)
 #
 # structures = t6_load_feature_crane(FEATURE_DIR, structures)
 #
@@ -172,7 +174,7 @@ K.set_session(sess)
 retrain = True
 
 start_time = datetime.now()
-test_prediction = np.zeros(len(X))
+test_prediction = np.zeros(len(X_test))
 # input_features = ['atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7',
 #                   'atom_8', 'atom_9', 'atom_10', 'd_1_0', 'd_2_0', 'd_2_1', 'd_3_0',
 #                   'd_3_1', 'd_3_2', 'd_4_0', 'd_4_1', 'd_4_2', 'd_4_3', 'd_5_0',
@@ -281,7 +283,7 @@ print(test_prediction)
 def submits(predictions):
     submit = t6_load_submissions(INPUT_DIR)
     submit["scalar_coupling_constant"] = predictions
-    submit.to_csv(f'{WORK_DIR}/t6c_scc.csv', index=False)
+    submit.to_csv(f'{OUTPUT_DIR}/t6c_scc.csv', index=False)
 
 
 submits(test_prediction)
