@@ -325,7 +325,7 @@ def t5_merge_qm7eigen(input_dir, structures):
         'sv_4': 'float32',
         'sv_min': 'float32',
     }
-    qm7eigen = pd.read_csv(input_dir + '/yukawa/structures_yukawa.csv', dtype=dtype)
+    qm7eigen = pd.read_csv(input_dir + '/qm7eigen/struct_eigen.csv', dtype=dtype)
     qm7eigen.drop(columns=['atom_index', 'connectedness'])
     qm7eigen.columns = [f'qm7e_{c}' for c in qm7eigen.columns]
     structures = pd.concat([structures, qm7eigen], axis=1)

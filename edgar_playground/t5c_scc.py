@@ -65,42 +65,54 @@ PARAMS = {
 }
 
 train, test, structures, contributions = t5_load_data(INPUT_DIR)
+disp_mem_usage()
 
 structures = t5_merge_yukawa(INPUT_DIR, structures)
+disp_mem_usage()
 
-structures = t5_merge_qm7eigen(INPUT_DIR, structures)
+structures = t5_merge_qm7eigen(FEATURE_DIR, structures)
+disp_mem_usage()
 
 structures = t5_load_feature_crane(FEATURE_DIR, structures)
+disp_mem_usage()
 
 train, test = t5_merge_structures(train, test, structures)
+disp_mem_usage()
+print(structures.stypes.T)
 
 t5_distance_feature(train, test)
+disp_mem_usage()
 
 train, test = t5_load_feature_criskiev(FEATURE_DIR, train, test)
+disp_mem_usage()
 
 train, test = t5_load_feature_artgor(FEATURE_DIR, train, test)
+disp_mem_usage()
 
 #
 # Save to and/or load from parquet
 #
 # t5_to_parquet(WORK_DIR, train, test, structures, contributions)
 
-train, test, structures, contributions = t5_read_parquet(WORK_DIR)
+# train, test, structures, contributions = t5_read_parquet(WORK_DIR)
 
 #
 # Edike :)
 #
 train, test = t5_load_feature_edgar(FEATURE_DIR, train, test)
+disp_mem_usage()
 
 #
 # Load Phase 1. OOF data Mulliken charge
 #
 train, test = t5_load_data_mulliken_oof(WORK_DIR, train, test)
+disp_mem_usage()
 
 #
 # Load Phase 2. OOF data Contributions (fc, sd, pso, dso)
 #
 train, test = t5_load_data_contributions_oof(WORK_DIR, train, test)
+disp_mem_usage()
 
 # t5_criskiev_features_extra(train, test)
 
