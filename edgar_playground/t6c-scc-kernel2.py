@@ -5,12 +5,12 @@ FEATURE_DIR = '../feature/t6'
 WORK_DIR = '../work/t6'
 OUTPUT_DIR = '../work/t6'
 
-#  --- KAGGLE ---
-INPUT_DIR = '../input/champs-scalar-coupling'
-YUKAWA_DIR = '../input/parallelization-of-coulomb-yukawa-interaction'
-FEATURE_DIR = '../input/t6-features-parquet/t6_features_parquet'
-WORK_DIR = '../input/t5-0825-contribfull'
-OUTPUT_DIR = '.'
+# #  --- KAGGLE ---
+# INPUT_DIR = '../input/champs-scalar-coupling'
+# YUKAWA_DIR = '../input/parallelization-of-coulomb-yukawa-interaction'
+# FEATURE_DIR = '../input/t6-features-parquet/t6_features_parquet'
+# WORK_DIR = '../input/t5-0825-contribfull'
+# OUTPUT_DIR = '.'
 
 
 # This Python 3 environment comes with many helpful analytics libraries installed
@@ -437,10 +437,10 @@ def t6_prepare_columns(train, test, good_columns_extra=None):
         'yuka_dist_O_0_a1', 'yuka_dist_O_1_a1', 'yuka_dist_O_2_a1', 'yuka_dist_O_3_a1', 'yuka_dist_O_4_a1',
 
         # Crane
-        # 'cran_EN_a0', 'cran_rad_a0', 'cran_n_bonds_a0', 'cran_bond_lengths_mean_a0', 'cran_bond_lengths_std_a0',
-        # 'cran_bond_lengths_median_a0',
-        # 'cran_EN_a1', 'cran_rad_a1', 'cran_n_bonds_a1', 'cran_bond_lengths_mean_a1', 'cran_bond_lengths_std_a1',
-        # 'cran_bond_lengths_median_a1',
+        'cran_EN_a0', 'cran_rad_a0', 'cran_n_bonds_a0', 'cran_bond_lengths_mean_a0', 'cran_bond_lengths_std_a0',
+        'cran_bond_lengths_median_a0',
+        'cran_EN_a1', 'cran_rad_a1', 'cran_n_bonds_a1', 'cran_bond_lengths_mean_a1', 'cran_bond_lengths_std_a1',
+        'cran_bond_lengths_median_a1',
 
         # Criskiev
         # 'd_1_0'
@@ -579,7 +579,7 @@ np.random.seed(SEED)
 
 cv_score = []
 cv_score_total = 0
-epoch_n = 100
+epoch_n = 5000
 verbose = 0
 batch_size = 2048
 
@@ -609,15 +609,21 @@ for type_name in TYPE_WL:
     target_data = train.loc[train_selector, 'scalar_coupling_constant'].values
 
     structures = t6_merge_yukawa(YUKAWA_DIR, structures)
+    gc.collect()
+    disp_mem_usage()
 
-    # structures = t6_load_feature_crane(FEATURE_DIR, structures)
+    structures = t6_load_feature_crane(FEATURE_DIR, structures)
+    gc.collect()
+    disp_mem_usage()
 
     train, test = t6_merge_structures(train, test, structures)
-
+    gc.collect()
     disp_mem_usage()
+
     del structures
     reduce_mem_usage(train)
     reduce_mem_usage(test)
+
     gc.collect()
     disp_mem_usage()
 
@@ -687,7 +693,7 @@ for type_name in TYPE_WL:
     # input_data=StandardScaler().fit_transform(df_train_.loc[:,input_features])
 
     # Simple split to provide us a validation set to do our CV checks with
-    train_index, cv_index = train_test_split(np.arange(len(X_learn)), random_state=SEED, test_size=0.1)
+    train_index, cv_index = train_test_split(np.arange(len(X_learn)), random_state=SEED, test_size=0.2)
     # Split all our input and targets by train and cv indexes
     train_target = target_data[train_index]
     cv_target = target_data[cv_index]

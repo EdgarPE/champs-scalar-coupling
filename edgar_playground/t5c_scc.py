@@ -26,7 +26,7 @@ WORK_DIR = '../work/t5'
 OUTPUT_DIR = '../work/t5'
 
 # TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['3JHN', '2JHN']
+TYPE_WL = ['3JHC', '2JHN']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -54,14 +54,15 @@ PARAMS = {
         "bagging_seed": SEED,
         "metric": 'mae',
         "verbosity": -1,
-        'reg_alpha': 0.2,
-        'reg_lambda': 0.3,
-        'colsample_bytree': 0.7
+        'reg_alpha': 0.01,
+        'reg_lambda': 0.05,
+        'colsample_bytree': 0.4
     },
-    '1JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
-    '2JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
-    '3JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
-    # '1JHC': {'min_child_samples': 22},
+    # '1JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
+    # '2JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
+    # '3JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
+    # '1JHC': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
+    # '3JHC': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
 }
 
 # train, test, structures, contributions = t5_load_data(INPUT_DIR)

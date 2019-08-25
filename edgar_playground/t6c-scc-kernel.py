@@ -546,7 +546,7 @@ np.random.seed(SEED)
 
 cv_score = []
 cv_score_total = 0
-epoch_n = 1000
+epoch_n = 5000
 verbose = 0
 batch_size = 2048
 
@@ -706,7 +706,7 @@ for type_name in TYPE_WL:
     #     print(target_data.shape)
 
     # Simple split to provide us a validation set to do our CV checks with
-    train_index, cv_index = train_test_split(np.arange(len(df_train_)), random_state=SEED, test_size=0.1)
+    train_index, cv_index = train_test_split(np.arange(len(df_train_)), random_state=SEED, test_size=0.2)
     # Split all our input and targets by train and cv indexes
     train_target = target_data[train_index]
     cv_target = target_data[cv_index]
