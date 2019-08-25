@@ -18,6 +18,7 @@ from catboost import CatBoostRegressor, CatBoostClassifier
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import seaborn as sns
+import gc
 
 
 def lineno():
@@ -310,14 +311,14 @@ def t5_merge_yukawa(input_dir, structures):
 # 'atom_index','connectedness','coulomb_mean','eigv_gap','eigv_max','eigv_min','fiedler_eig','molecule_name','sv_0','sv_1','sv_2','sv_3','sv_4','sv_min'
 def t5_merge_qm7eigen(input_dir, structures):
     dtype = {
-        'atom_index': 'int32',
-        'connectedness': 'int32',
+        # 'atom_index': 'int32',
+        # 'connectedness': 'int32',
         'coulomb_mean': 'float32',
         'eigv_gap': 'float32',
         'eigv_max': 'float32',
         'eigv_min': 'float32',
         'fiedler_eig': 'float32',
-        'molecule_name': 'float32',
+        # 'molecule_name': 'object',
         'sv_0': 'float32',
         'sv_1': 'float32',
         'sv_2': 'float32',
@@ -325,10 +326,17 @@ def t5_merge_qm7eigen(input_dir, structures):
         'sv_4': 'float32',
         'sv_min': 'float32',
     }
+
     qm7eigen = pd.read_csv(input_dir + '/qm7eigen/struct_eigen.csv', dtype=dtype)
-    qm7eigen.drop(columns=['atom_index', 'connectedness'])
+
     qm7eigen.columns = [f'qm7e_{c}' for c in qm7eigen.columns]
-    structures = pd.concat([structures, qm7eigen], axis=1)
+
+    # structures = pd.concat([structures, qm7eigen], axis=1)
+    structures = pd.merge(structures, qm7eigen, how='left',
+                          left_on=['molecule_name', 'atom_index'],
+                          right_on=['qm7e_molecule_name', 'qm7e_atom_index'])
+    structures.drop(columns=['qm7e_molecule_name', 'qm7e_atom_index', 'qm7e_connectedness'], inplace=True)
+
 
     return structures
 
@@ -371,7 +379,12 @@ def t5_load_data_magnetic_st(input_dir):
 
 
 def t5_load_data_mulliken_oof(work_dir, train, test):
-    mulliken_charges = pd.read_csv(work_dir + '/t5a_mulliken_train.csv')
+    dtype = {
+        # 'molecule_name': 'object',
+        'atom_index': 'int32',
+        'oof_mulliken_charge': 'float32',
+    }
+    mulliken_charges = pd.read_csv(work_dir + '/t5a_mulliken_train.csv', dtype=dtype)
     train = pd.merge(train, mulliken_charges, how='left',
                      left_on=['molecule_name', 'atom_index_0'],
                      right_on=['molecule_name', 'atom_index'])
@@ -384,7 +397,7 @@ def t5_load_data_mulliken_oof(work_dir, train, test):
     train.drop('atom_index', axis=1, inplace=True)
     train.rename(inplace=True, columns={'oof_mulliken_charge': 'mulliken_charge_1'})
 
-    mulliken_charges = pd.read_csv(work_dir + '/t5a_mulliken_test.csv')
+    mulliken_charges = pd.read_csv(work_dir + '/t5a_mulliken_test.csv', dtype=dtype)
     test = pd.merge(test, mulliken_charges, how='left',
                     left_on=['molecule_name', 'atom_index_0'],
                     right_on=['molecule_name', 'atom_index'])
@@ -416,7 +429,14 @@ def t5_merge_contributions(train, contributions):
 
 
 def t5_load_data_contributions_oof(work_dir, train, test):
-    oof_contributions = pd.read_csv(work_dir + '/t5b_contributions_train.csv')
+    dtype = {
+        'id': 'int32',
+        'oof_fc': 'float32',
+        'oof_sd': 'float32',
+        'oof_pso': 'float32',
+        'oof_dso': 'float32',
+    }
+    oof_contributions = pd.read_csv(work_dir + '/t5b_contributions_train.csv', dtype=dtype)
     train = pd.merge(train, oof_contributions, how='left',
                      left_on=['id'],
                      right_on=['id'])
@@ -428,7 +448,7 @@ def t5_load_data_contributions_oof(work_dir, train, test):
     })
     train['contrib_sum'] = train['fc'] + train['sd'] + train['pso'] + train['dso']
 
-    oof_contributions = pd.read_csv(work_dir + '/t5b_contributions_test.csv')
+    oof_contributions = pd.read_csv(work_dir + '/t5b_contributions_test.csv', dtype=dtype)
     test = pd.merge(test, oof_contributions, how='left',
                     left_on=['id'],
                     right_on=['id'])
@@ -647,25 +667,28 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
         # 'd_8_2_recp', 'd_8_3_recp', 'd_9_0_recp', 'd_9_1_recp', 'd_9_2_recp', 'd_9_3'
 
         # Giba
-        # 'giba_typei', 'giba_N1', 'giba_N2', 'giba_link0', 'giba_link1', 'giba_linkN', 'giba_dist_xyz', 'giba_inv_dist0',
-        # 'giba_inv_dist1', 'giba_inv_distP', 'giba_R0', 'giba_R1', 'giba_E0', 'giba_E1', 'giba_inv_dist0R',
-        # 'giba_inv_dist1R', 'giba_inv_distPR', 'giba_inv_dist0E', 'giba_inv_dist1E', 'giba_inv_distPE', 'giba_linkM0',
-        # 'giba_linkM1', 'giba_min_molecule_atom_0_dist_xyz', 'giba_mean_molecule_atom_0_dist_xyz',
-        # 'giba_max_molecule_atom_0_dist_xyz', 'giba_sd_molecule_atom_0_dist_xyz', 'giba_min_molecule_atom_1_dist_xyz',
-        # 'giba_mean_molecule_atom_1_dist_xyz', 'giba_max_molecule_atom_1_dist_xyz', 'giba_sd_molecule_atom_1_dist_xyz',
-        # 'giba_coulomb_C.x', 'giba_coulomb_F.x', 'giba_coulomb_H.x', 'giba_coulomb_N.x', 'giba_coulomb_O.x',
-        # 'giba_yukawa_C.x', 'giba_yukawa_F.x', 'giba_yukawa_H.x', 'giba_yukawa_N.x', 'giba_yukawa_O.x',
-        # 'giba_vander_C.x', 'giba_vander_F.x', 'giba_vander_H.x', 'giba_vander_N.x', 'giba_vander_O.x',
-        # 'giba_coulomb_C.y', 'giba_coulomb_F.y', 'giba_coulomb_H.y', 'giba_coulomb_N.y', 'giba_coulomb_O.y',
-        # 'giba_yukawa_C.y', 'giba_yukawa_F.y', 'giba_yukawa_H.y', 'giba_yukawa_N.y', 'giba_yukawa_O.y',
-        # 'giba_vander_C.y', 'giba_vander_F.y', 'giba_vander_H.y', 'giba_vander_N.y', 'giba_vander_O.y', 'giba_distC0',
-        # 'giba_distH0', 'giba_distN0', 'giba_distC1', 'giba_distH1', 'giba_distN1', 'giba_adH1', 'giba_adH2',
-        # 'giba_adH3', 'giba_adH4', 'giba_adC1', 'giba_adC2', 'giba_adC3', 'giba_adC4', 'giba_adN1', 'giba_adN2',
-        # 'giba_adN3', 'giba_adN4', 'giba_NC', 'giba_NH', 'giba_NN', 'giba_NF', 'giba_NO',
+        'giba_typei', 'giba_N1', 'giba_N2', 'giba_link0', 'giba_link1', 'giba_linkN', 'giba_dist_xyz', 'giba_inv_dist0',
+        'giba_inv_dist1', 'giba_inv_distP', 'giba_R0', 'giba_R1', 'giba_E0', 'giba_E1', 'giba_inv_dist0R',
+        'giba_inv_dist1R', 'giba_inv_distPR', 'giba_inv_dist0E', 'giba_inv_dist1E', 'giba_inv_distPE', 'giba_linkM0',
+        'giba_linkM1', 'giba_min_molecule_atom_0_dist_xyz', 'giba_mean_molecule_atom_0_dist_xyz',
+        'giba_max_molecule_atom_0_dist_xyz', 'giba_sd_molecule_atom_0_dist_xyz', 'giba_min_molecule_atom_1_dist_xyz',
+        'giba_mean_molecule_atom_1_dist_xyz', 'giba_max_molecule_atom_1_dist_xyz', 'giba_sd_molecule_atom_1_dist_xyz',
+        'giba_coulomb_C.x', 'giba_coulomb_F.x', 'giba_coulomb_H.x', 'giba_coulomb_N.x', 'giba_coulomb_O.x',
+        'giba_yukawa_C.x', 'giba_yukawa_F.x', 'giba_yukawa_H.x', 'giba_yukawa_N.x', 'giba_yukawa_O.x',
+        'giba_vander_C.x', 'giba_vander_F.x', 'giba_vander_H.x', 'giba_vander_N.x', 'giba_vander_O.x',
+        'giba_coulomb_C.y', 'giba_coulomb_F.y', 'giba_coulomb_H.y', 'giba_coulomb_N.y', 'giba_coulomb_O.y',
+        'giba_yukawa_C.y', 'giba_yukawa_F.y', 'giba_yukawa_H.y', 'giba_yukawa_N.y', 'giba_yukawa_O.y',
+        'giba_vander_C.y', 'giba_vander_F.y', 'giba_vander_H.y', 'giba_vander_N.y', 'giba_vander_O.y', 'giba_distC0',
+        'giba_distH0', 'giba_distN0', 'giba_distC1', 'giba_distH1', 'giba_distN1', 'giba_adH1', 'giba_adH2',
+        'giba_adH3', 'giba_adH4', 'giba_adC1', 'giba_adC2', 'giba_adC3', 'giba_adC4', 'giba_adN1', 'giba_adN2',
+        'giba_adN3', 'giba_adN4', 'giba_NC', 'giba_NH', 'giba_NN', 'giba_NF', 'giba_NO',
 
         # QM7 eigen
-        'qm7e_coulomb_mean', 'qm7e_eigv_gap', 'qm7e_eigv_max', 'qm7e_eigv_min', 'qm7e_fiedler_eig',
-        'qm7e_molecule_name', 'qm7e_sv_0', 'qm7e_sv_1', 'qm7e_sv_2', 'qm7e_sv_3', 'qm7e_sv_4', 'qm7e_sv_min'
+        'qm7e_coulomb_mean_a0', 'qm7e_eigv_gap_a0', 'qm7e_eigv_max_a0', 'qm7e_eigv_min_a0', 'qm7e_fiedler_eig_a0',
+        'qm7e_sv_0_a0', 'qm7e_sv_1_a0', 'qm7e_sv_2_a0', 'qm7e_sv_3_a0', 'qm7e_sv_4_a0', 'qm7e_sv_min_a0',
+
+        'qm7e_coulomb_mean_a1', 'qm7e_eigv_gap_a1', 'qm7e_eigv_max_a1', 'qm7e_eigv_min_a1', 'qm7e_fiedler_eig_a1',
+        'qm7e_sv_0_a1', 'qm7e_sv_1_a1', 'qm7e_sv_2_a1', 'qm7e_sv_3_a1', 'qm7e_sv_4_a1', 'qm7e_sv_min_a1',
 
     ]
 
@@ -680,6 +703,9 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
             test[f] = lbl.transform(list(test[f].values))
 
             labels[f] = lbl
+
+    # print(train.dtypes.T)
+    # print(test.dtypes.T)
 
     X = train[good_columns].copy()
     X_test = test[good_columns].copy()
@@ -718,6 +744,18 @@ def t5_read_parquet(work_dir):
     contributions = pd.read_parquet(f'{work_dir}/t5_contributions.parquet')
 
     return train, test, structures, contributions
+
+
+def t5_to_parquet_tt(work_dir, train, test):
+    train.to_parquet(f'{work_dir}/t5_train.parquet')
+    test.to_parquet(f'{work_dir}/t5_test.parquet')
+
+
+def t5_read_parquet_tt(work_dir):
+    train = pd.read_parquet(f'{work_dir}/t5_train.parquet')
+    test = pd.read_parquet(f'{work_dir}/t5_test.parquet')
+
+    return train, test
 
 
 def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, output_dir,

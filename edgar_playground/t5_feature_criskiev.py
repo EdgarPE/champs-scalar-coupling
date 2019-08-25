@@ -207,7 +207,7 @@ def t5_criskiev_features(train_, test_, structures_):
 def t5_criskiev_features_improve(train, test):
     def do_improve(df):
         categories = ['atom_2', 'atom_3', 'atom_4', 'atom_5', 'atom_6', 'atom_7', 'atom_8', 'atom_9']
-        df[categories] = df[categories].astype('category')
+        df[categories] = df[categories].astype('int8')
 
         df.drop(columns=['d_1_0'], inplace=True)
 

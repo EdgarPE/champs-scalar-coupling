@@ -61,7 +61,7 @@ def t5_edgar_qcut(train, test):
             test.loc[test['type'] == t, f'qcut_subtype_{col_index}'] = pd.cut(test.loc[test['type'] == t, 'dist_lin'],
                                                                           bins=bins, labels=False,
                                                                           include_lowest=True).astype('int8')
-    return train[columns].astype('category'), test[columns].astype('category')
+    return train[columns].astype('int8'), test[columns].astype('int8')
 
 
 # Dist feature
