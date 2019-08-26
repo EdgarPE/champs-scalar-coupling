@@ -282,6 +282,9 @@ def t5_load_feature_criskiev(feature_dir, train_, test_, train_selector, test_se
     train = pd.read_parquet(feature_dir + '/criskiev/criskiev_train.parquet')[train_selector]
     test = pd.read_parquet(feature_dir + '/criskiev/criskiev_test.parquet')[test_selector]
 
+    train.index = train_.index
+    test.index = test_.index
+
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
 
@@ -295,6 +298,9 @@ def t5_load_feature_artgor(feature_dir, train_, test_, train_selector, test_sele
     train = pd.read_parquet(feature_dir + '/artgor/artgor_train.parquet')[train_selector]
     test = pd.read_parquet(feature_dir + '/artgor/artgor_test.parquet')[test_selector]
 
+    train.index = train_.index
+    test.index = test_.index
+
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
 
@@ -302,12 +308,38 @@ def t5_load_feature_giba(feature_dir, train_, test_, train_selector, test_select
     train = pd.read_parquet(feature_dir + '/giba/train_giba.parquet')[train_selector]
     test = pd.read_parquet(feature_dir + '/giba/test_giba.parquet')[test_selector]
 
+    train.index = train_.index
+    test.index = test_.index
+
+    return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
+
+
+def t5_load_feature_todnewman(feature_dir, train_, test_, train_selector, test_selector):
+    train = pd.read_parquet(feature_dir + '/todnewman/todnewman_train.parquet')[train_selector]
+    test = pd.read_parquet(feature_dir + '/todnewman/todnewman_test.parquet')[test_selector]
+
+    train.index = train_.index
+    test.index = test_.index
+
+    return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
+
+
+def t5_load_feature_cis_trans(feature_dir, train_, test_, train_selector, test_selector):
+    train = pd.read_parquet(feature_dir + '/cis_trans/train_cis_trans.parquet').astype('int8')[train_selector]
+    test = pd.read_parquet(feature_dir + '/cis_trans/test_cis_trans.parquet').astype('int8')[test_selector]
+
+    train.index = train_.index
+    test.index = test_.index
+
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
 
 def t5_load_feature_todnewton(feature_dir, train_, test_, train_selector, test_selector):
     train = pd.read_parquet(feature_dir + '/giba/train_giba.parquet')[train_selector]
     test = pd.read_parquet(feature_dir + '/giba/test_giba.parquet')[test_selector]
+
+    train.index = train_.index
+    test.index = test_.index
 
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
@@ -351,7 +383,6 @@ def t5_merge_qm7eigen(input_dir, structures):
                           right_on=['qm7e_molecule_name', 'qm7e_atom_index'])
     structures.drop(columns=['qm7e_molecule_name', 'qm7e_atom_index', 'qm7e_connectedness'], inplace=True)
 
-
     return structures
 
 
@@ -359,10 +390,16 @@ def t5_load_feature_edgar(feature_dir, train_, test_, train_selector, test_selec
     train = pd.read_parquet(feature_dir + '/edgar/edgar_train.parquet')[train_selector]
     test = pd.read_parquet(feature_dir + '/edgar/edgar_test.parquet')[test_selector]
 
+    train.index = train_.index
+    test.index = test_.index
+
     return pd.concat([train_, train], axis=1), pd.concat([test_, test], axis=1)
 
 
 def t5_load_data_mulliken_oof(work_dir, train, test):
+    train_index = train.index
+    test_index = test.index
+
     dtype = {
         # 'molecule_name': 'object',
         'atom_index': 'int32',
@@ -394,10 +431,16 @@ def t5_load_data_mulliken_oof(work_dir, train, test):
     test.drop('atom_index', axis=1, inplace=True)
     test.rename(inplace=True, columns={'oof_mulliken_charge': 'mulliken_charge_1'})
 
+    train.index = train_index
+    test.index = test_index
+
     return train, test
 
 
 def t5_load_data_contributions_oof(work_dir, train, test):
+    train_index = train.index
+    test_index = test.index
+
     dtype = {
         'id': 'int32',
         'oof_fc': 'float32',
@@ -429,15 +472,24 @@ def t5_load_data_contributions_oof(work_dir, train, test):
     })
     test['contrib_sum'] = test['fc'] + test['sd'] + test['pso'] + test['dso']
 
+    train.index = train_index
+    test.index = test_index
+
     return train, test
 
 
 def t5_merge_structures(train, test, structures):
+    train_index = train.index
+    test_index = test.index
+
     train = map_atom_info(train, 0, structures)
     train = map_atom_info(train, 1, structures)
 
     test = map_atom_info(test, 0, structures)
     test = map_atom_info(test, 1, structures)
+
+    train.index = train_index
+    test.index = test_index
 
     train_p_0 = train[['x_0', 'y_0', 'z_0']].values
     train_p_1 = train[['x_1', 'y_1', 'z_1']].values
@@ -582,7 +634,7 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
         'artg_molecule_atom_index_0_y_1_mean_div',
         'artg_molecule_type_dist_mean_div',
 
-        'type',
+        # 'type',
 
         # Yukawa
         'yuka_dist_C_0_a0', 'yuka_dist_C_1_a0', 'yuka_dist_C_2_a0', 'yuka_dist_C_3_a0', 'yuka_dist_C_4_a0',
@@ -648,27 +700,24 @@ def t5_prepare_columns(train, test, good_columns_extra=None):
         'qm7e_coulomb_mean_a1', 'qm7e_eigv_gap_a1', 'qm7e_eigv_max_a1', 'qm7e_eigv_min_a1', 'qm7e_fiedler_eig_a1',
         'qm7e_sv_0_a1', 'qm7e_sv_1_a1', 'qm7e_sv_2_a1', 'qm7e_sv_3_a1', 'qm7e_sv_4_a1', 'qm7e_sv_min_a1',
 
+        # Todnewman
+        'todn_distance_center0', 'todn_distance_center1', 'todn_distance_c0', 'todn_distance_c1', 'todn_distance_f0',
+        'todn_distance_f1', 'todn_cos_c0_c1', 'todn_cos_f0_f1', 'todn_cos_center0_center1', 'todn_cos_c0',
+        'todn_cos_c1', 'todn_cos_f0', 'todn_cos_f1', 'todn_cos_center0', 'todn_cos_center1',
+
+        # cis trans
+        'is_cis', 'is_trans',
     ]
+
+    # int8 = ['is_cis', 'is_trans',]
+    # for df in [train, test]:
+    #     df[int8] = df[int8].astype('int8')
 
     good_columns += (good_columns_extra if good_columns_extra is not None else [])
 
-    labels = {}
-    for f in ['atom_1', 'type_0', 'type']:
-        if f in good_columns:
-            lbl = LabelEncoder()
-            lbl.fit(list(train[f].values) + list(test[f].values))
-            train[f] = lbl.transform(list(train[f].values))
-            test[f] = lbl.transform(list(test[f].values))
+    y = train['scalar_coupling_constant']
 
-            labels[f] = lbl
-
-    # print(train.dtypes.T)
-    # print(test.dtypes.T)
-
-    X = train[good_columns].copy()
-    X_test = test[good_columns].copy()
-
-    return X, X_test, labels
+    return train[good_columns], test[good_columns], y
 
 
 def t5_to_parquet(work_dir, train, test, structures, contributions):
@@ -699,61 +748,50 @@ def t5_read_parquet_tt(work_dir):
     return train, test
 
 
-def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, output_dir,
-                  train_filename, test_filename):
+def t5_do_predict(train, test, y, type_name, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, output_dir):
     for target in TARGET_WL:
         train[f'oof_{target}'] = np.nan
         test[f'oof_{target}'] = np.nan
 
     for target in TARGET_WL:
-        for type_name in TYPE_WL:
-            _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
-            _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
-            t = labels['type'].transform([type_name])[0]
+        _PARAMS = {**PARAMS['_'], **PARAMS[type_name]} if type_name in PARAMS.keys() else PARAMS['_']
+        _N_FOLD = N_FOLD[type_name] if type_name in N_FOLD.keys() else N_FOLD['_']
+        _N_ESTIMATORS = N_ESTIMATORS[type_name] if type_name in N_ESTIMATORS.keys() else N_ESTIMATORS['_']
+        # _N_ESTIMATORS = _N_ESTIMATORS if target != 'fc' else _N_ESTIMATORS * 4
 
-            _N_ESTIMATORS = N_ESTIMATORS[type_name] if type_name in N_ESTIMATORS.keys() else N_ESTIMATORS['_']
-            # _N_ESTIMATORS = _N_ESTIMATORS if target != 'fc' else _N_ESTIMATORS * 4
+        folds = KFold(n_splits=_N_FOLD, shuffle=True, random_state=SEED)
 
-            X_t = X.loc[X['type'] == t]
-            X_test_t = X_test.loc[X_test['type'] == t]
-            y_t = train.loc[train['type'] == t, target]
+        print("Training of type %s, component '%s', train size: %d" % (type_name, target, len(y)))
 
-            folds = KFold(n_splits=_N_FOLD, shuffle=True, random_state=SEED)
+        now = datetime.now()
 
-            print("Training of type %s, component '%s', train size: %d" % (type_name, target, len(y_t)))
+        plot_filename = f'{output_dir}/{target}_{type_name}_' + now.strftime(
+            '%m%d_%H%M') + '.png' if output_dir is not None else None
+        result_dict_lgb_oof = train_model_regression(X=train, X_test=test, y=y, params=_PARAMS, folds=folds,
+                                                     model_type='lgb', eval_metric='mae',
+                                                     plot_feature_importance=plot_filename,
+                                                     verbose=500, early_stopping_rounds=200,
+                                                     n_estimators=_N_ESTIMATORS)
 
-            now = datetime.now()
+        train[f'oof_{target}'] = result_dict_lgb_oof['oof']
+        test[f'oof_{target}'] = result_dict_lgb_oof['prediction']
 
-            plot_filename = f'{output_dir}/{target}_{type_name}_' + now.strftime(
-                '%m%d_%H%M') + '.png' if output_dir is not None else None
-            result_dict_lgb_oof = train_model_regression(X=X_t, X_test=X_test_t, y=y_t, params=_PARAMS, folds=folds,
-                                                         model_type='lgb', eval_metric='group_mae',
-                                                         plot_feature_importance=plot_filename,
-                                                         verbose=500, early_stopping_rounds=200,
-                                                         n_estimators=_N_ESTIMATORS)
+        log_message = 'CV mean score [%s, %s]: %.4f, std: %.4f' % (type_name, target,
+                                                                   np.mean(result_dict_lgb_oof['scores']),
+                                                                   np.std(result_dict_lgb_oof['scores']))
+        print(log_message)
 
-            train.loc[train['type'] == t, f'oof_{target}'] = result_dict_lgb_oof['oof']
-            test.loc[test['type'] == t, f'oof_{target}'] = result_dict_lgb_oof['prediction']
+        feature_importance = result_dict_lgb_oof['feature_importance']
+        cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(
+            by="importance", ascending=False)[:80].index
+        best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
+        print('Feature importances of type %s, component %s:' % (type_name, target))
+        print(best_features[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
+                                                                                             ascending=False))
 
-            log_message = 'CV mean score [%s, %s]: %.4f, std: %.4f' % (type_name, target,
-                                                                       np.mean(result_dict_lgb_oof['scores']),
-                                                                       np.std(result_dict_lgb_oof['scores']))
-            print(log_message)
-
-            feature_importance = result_dict_lgb_oof['feature_importance']
-            cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(
-                by="importance", ascending=False)[:80].index
-            best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
-            print('Feature importances of type %s, component %s:' % (type_name, target))
-            print(best_features[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
-                                                                                                 ascending=False))
-
-            if output_dir is not None:
-                with open(output_dir + '/log.log', 'a') as the_file:
-                    the_file.write(log_message + '\n')
-
-                train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{output_dir}/{train_filename}', index=False)
-                test[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{output_dir}/{test_filename}', index=False)
+        if output_dir is not None:
+            with open(output_dir + '/log.log', 'a') as the_file:
+                the_file.write(log_message + '\n')
 
 
 def t5_learning_rate_010_decay_power_099(current_iter):
@@ -791,6 +829,7 @@ def t5_learning_rate_decay(current_iter):
     lr = base_learning_rate * np.power(.99965, current_iter)
     return max(lr, 0.010)
 
+
 ##### COPY__PASTE__LIB__END #####
 
 
@@ -807,7 +846,7 @@ WORK_DIR = '../work/t5_v2'
 OUTPUT_DIR = '../work/t5_v2'
 
 # TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['3JHN', '2JHN']
+TYPE_WL = ['1JHN', '2JHN', '3JHN', '1JHC', '2JHC', '3JHC', '2JHH', '3JHH']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -815,11 +854,11 @@ SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 5, # mint UA
+    '_': 2,
 }
 
 N_ESTIMATORS = {
-    '_': 12000,
+    '_': 100,
 }
 
 PARAMS = {
@@ -835,9 +874,9 @@ PARAMS = {
         "bagging_seed": SEED,
         "metric": 'mae',
         "verbosity": -1,
-        'reg_alpha': 0.2,
+        'reg_alpha': 0.1,
         'reg_lambda': 0.3,
-        'colsample_bytree': 0.7
+        'colsample_bytree': 0.4
     },
     '1JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
     '2JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
@@ -845,8 +884,17 @@ PARAMS = {
     # '1JHC': {'min_child_samples': 22},
 }
 
-oof_train = pd.DataFrame(columns=['id', 'oof_scalar_coupling_constant'])
-oof_test = pd.DataFrame(columns=['id', 'oof_scalar_coupling_constant'])
+train_oof, test_oof, _structures, _contributions = t5_load_data(INPUT_DIR)
+del _structures, _contributions
+
+train_oof = train_oof[['id']]
+train_oof['oof_scalar_coupling_constant'] = np.nan
+
+test_oof = test_oof[['id']]
+test_oof['oof_scalar_coupling_constant'] = np.nan
+
+gc.collect()
+disp_mem_usage()
 
 for type_name in TYPE_WL:
     train, test, structures, contributions = t5_load_data(INPUT_DIR)
@@ -872,11 +920,9 @@ for type_name in TYPE_WL:
     disp_mem_usage()
 
     train, test = t5_merge_structures(train, test, structures)
-    gc.collect()
-    disp_mem_usage()
-
     del structures
     gc.collect()
+    disp_mem_usage()
 
     t5_distance_feature(train, test)
     gc.collect()
@@ -894,6 +940,14 @@ for type_name in TYPE_WL:
     gc.collect()
     disp_mem_usage()
 
+    train, test = t5_load_feature_cis_trans(FEATURE_DIR, train, test, train_selector, test_selector)
+    gc.collect()
+    disp_mem_usage()
+
+    train, test = t5_load_feature_todnewman(FEATURE_DIR, train, test, train_selector, test_selector)
+    gc.collect()
+    disp_mem_usage()
+
     train, test = t5_load_feature_edgar(FEATURE_DIR, train, test, train_selector, test_selector)
     gc.collect()
     disp_mem_usage()
@@ -906,25 +960,32 @@ for type_name in TYPE_WL:
     gc.collect()
     disp_mem_usage()
 
-    gc.collect()
-    disp_mem_usage()
-
     #
     # Predict final target (Scalar coupling constant)
     #
-
-    # pd.set_option('display.max_rows', 200)
-    # print(train.describe().T) # Verbose=True
-    # print(train.dtypes.T)
 
     extra_cols = []
     extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
     extra_cols += ['fc', 'sd', 'pso', 'dso', 'contrib_sum']
     extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
-    X, X_test, labels = t5_prepare_columns(train, test, good_columns_extra=extra_cols)
-    t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, X, X_test, labels, OUTPUT_DIR,
-                  't5c_scc_train.csv', 't5c_scc_test.csv')
 
+    train, test, y = t5_prepare_columns(train, test, good_columns_extra=extra_cols)
 
-test.rename(inplace=True, columns={'oof_scalar_coupling_constant': 'scalar_coupling_constant'})
-test[['id'] + [f'{c}' for c in TARGET_WL]].to_csv(f'{OUTPUT_DIR}/t5c_submission.csv', index=False)
+    # pd.set_option('display.max_rows', 500)
+    # print(train.describe().T) # Verbose=True
+    # print(train.dtypes.T)
+
+    t5_do_predict(train, test, y, type_name, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS, SEED, OUTPUT_DIR)
+    # print(lineno(), train.shape)
+
+    train_oof.loc[train_selector, 'oof_scalar_coupling_constant'] = train['oof_scalar_coupling_constant']
+    test_oof.loc[test_selector, 'oof_scalar_coupling_constant'] = test['oof_scalar_coupling_constant']
+
+    train_oof.to_csv(f'{OUTPUT_DIR}/t5_scc_v2_train.csv', index=False)
+    test_oof.to_csv(f'{OUTPUT_DIR}/t5_scc_v2_test.csv', index=False)
+
+    del train, test
+    gc.collect()
+
+test_oof.rename(columns={'oof_scalar_coupling_constant': 'scalar_coupling_constant'}, inplace=True)
+test_oof.to_csv(f'{OUTPUT_DIR}/t5_scc_v2_submission.csv', index=False)

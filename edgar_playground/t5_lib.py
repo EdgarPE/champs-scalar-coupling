@@ -152,7 +152,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
                       eval_set=[(X_train, y_train), (X_valid, y_valid)],
                       eval_metric=metrics_dict[eval_metric]['lgb_metric_name'],
                       verbose=verbose, early_stopping_rounds=early_stopping_rounds,
-                      # callbacks=[lgb.reset_parameter(learning_rate=t5_learning_rate_decay)]
+                      # callbacks=[lgb.reset_parameter(learning_rate=t5_learning_rate_decay)],
                       )
             # callbacks=[lgb.reset_parameter(learning_rate=t5_learning_rate_decay)]
             # categorical_feature=['qcut_subtype_1','qcut_subtype_2']
@@ -855,8 +855,8 @@ def t5_learning_rate_020_decay_power_099965(current_iter):
 
 
 def t5_learning_rate_decay(current_iter):
-    base_learning_rate = 0.050
+    base_learning_rate = 0.020
     lr = base_learning_rate * np.power(.99965, current_iter)
-    return max(lr, 0.010)
+    return max(lr, 0.05)
 
 ##### COPY__PASTE__LIB__END #####

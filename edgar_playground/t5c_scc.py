@@ -25,8 +25,8 @@ WORK_DIR = '../work/t5'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5'
 
-TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-# TYPE_WL = ['1JHN', '2JHN']
+# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+TYPE_WL = ['1JHN', '2JHN', '3JHN']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -44,7 +44,7 @@ N_ESTIMATORS = {
 PARAMS = {
     '_': {
         'num_leaves': 512,
-        'min_child_samples': 12,
+        'min_child_samples': 22,
         'objective': 'regression',
         'max_depth': 12,
         'learning_rate': 0.02,
@@ -54,8 +54,8 @@ PARAMS = {
         "bagging_seed": SEED,
         "metric": 'mae',
         "verbosity": -1,
-        'reg_alpha': 0.01,
-        'reg_lambda': 0.05,
+        'reg_alpha': 0.2,
+        'reg_lambda': 0.3,
         'colsample_bytree': 0.4
     },
     # '1JHN': {'colsample_bytree': 0.4, 'reg_alpha': 0.01, 'reg_lambda': 0.05, },
