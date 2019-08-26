@@ -801,15 +801,24 @@ def t5_do_predict(train, test, TYPE_WL, TARGET_WL, PARAMS, N_FOLD, N_ESTIMATORS,
 
             feature_importance = result_dict_lgb_oof['feature_importance']
             cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(
-                by="importance", ascending=False)[:80].index
+                by="importance", ascending=False)[:50].index
             best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
-            # print('Feature importances of type %s, component %s:' % (type_name, target))
-            # print(best_features[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
-            #                                                                                      ascending=False))
+            print('Feature importances of type %s, component %s:' % (type_name, target))
+            print(best_features[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
+                                                                                                 ascending=False))
 
             if output_dir is not None:
                 with open(output_dir + '/log.log', 'a') as the_file:
                     the_file.write(log_message + '\n')
+
+                feature_importance = result_dict_lgb_oof['feature_importance']
+                cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(
+                    by="importance", ascending=False)[:1000].index
+                best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
+                best_features = best_features[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
+                                                                                               ascending=False)
+                best_features.to_csv(f'{output_dir}/features_{target}_{type_name}.log', index=True)
+
 
                 train[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{output_dir}/{train_filename}', index=False)
                 test[['id'] + [f'oof_{c}' for c in TARGET_WL]].to_csv(f'{output_dir}/{test_filename}', index=False)
