@@ -137,7 +137,8 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
     oof = np.zeros(len(X))
 
     # averaged predictions on train data
-    prediction = np.zeros(len(X_test))
+    prediction = np.zeros((len(X_test), folds.n_splits))
+    print(prediction.shape)
 
     # list of scores on folds
     scores = []
@@ -205,7 +206,7 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
         else:
             scores.append(metrics_dict[eval_metric]['scoring_function'](y_valid, y_pred_valid, X_valid['type']))
 
-        prediction += y_pred
+        prediction[:, fold_n] = y_pred
 
         if model_type == 'lgb' and plot_feature_importance is not None:
             # feature importance
@@ -215,7 +216,8 @@ def train_model_regression(X, X_test, y, params, folds, model_type='lgb', eval_m
             fold_importance["fold"] = fold_n + 1
             feature_importance = pd.concat([feature_importance, fold_importance], axis=0)
 
-    prediction /= folds.n_splits
+    prediction = np.median(prediction, axis=1)
+    print(prediction.shape)
 
     print('CV mean score: {0:.4f}, std: {1:.4f}.'.format(np.mean(scores), np.std(scores)))
 
@@ -845,8 +847,8 @@ WORK_DIR = '../work/t5_v2'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5_v2'
 
-TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-# TYPE_WL = ['1JHN', '2JHN', '3JHN', '1JHC', '2JHC', '3JHC', '2JHH', '3JHH']
+# TYPE_WL = ['3JHC', '2JHC', '1JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -874,8 +876,8 @@ PARAMS = {
         "bagging_seed": SEED,
         "metric": 'mae',
         "verbosity": -1,
-        'reg_alpha': 0.1,
-        'reg_lambda': 0.3,
+        'reg_alpha': 0.01,
+        'reg_lambda': 0.05,
         'colsample_bytree': 0.4
     },
 }
