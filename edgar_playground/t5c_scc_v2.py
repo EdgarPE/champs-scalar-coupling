@@ -856,7 +856,7 @@ SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 5,
+    '_': 6,
 }
 
 N_ESTIMATORS = {
