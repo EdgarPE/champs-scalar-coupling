@@ -6,11 +6,11 @@ WORK_DIR = '../work/t6'
 OUTPUT_DIR = '../work/t6'
 
 # #  --- KAGGLE ---
-# INPUT_DIR = '../input/champs-scalar-coupling'
-# YUKAWA_DIR = '../input/parallelization-of-coulomb-yukawa-interaction'
-# FEATURE_DIR = '../input/t6-features-parquet/t6_features_parquet'
-# WORK_DIR = '../input/t5-0825-contribfull'
-# OUTPUT_DIR = '.'
+INPUT_DIR = '../input/champs-scalar-coupling'
+YUKAWA_DIR = '../input/parallelization-of-coulomb-yukawa-interaction'
+FEATURE_DIR = '../input/t6-features-parquet/t6_features_parquet'
+WORK_DIR = '../input/t5-0825-contribfull'
+OUTPUT_DIR = '.'
 
 
 # This Python 3 environment comes with many helpful analytics libraries installed
@@ -535,9 +535,9 @@ def reduce_mem_usage(df, verbose=True):
 
 def create_nn_model(input_shape):
     inp = Input(shape=(input_shape,))
-    x = Dense(2048, activation="relu")(inp)
+    x = Dense(3072, activation="relu")(inp)
     x = BatchNormalization()(x)
-    # x = Dropout(0.4)(x)
+    x = Dropout(0.4)(x)
     x = Dense(1024, activation="relu")(x)
     x = BatchNormalization()(x)
     x = Dense(1024, activation="relu")(x)
@@ -568,8 +568,9 @@ def plot_history(history, label):
 
 ##### COPY__PASTE__LIB__END #####
 
-TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC', ]
-# TYPE_WL = ['3JHC', '2JHC', '1JHC', '3JHH', '2JHH', '3JHN', '2JHN', '1JHN' ]
+# TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC', ]
+TYPE_WL = ['3JHC', '2JHC', '1JHC', '3JHH', '2JHH', '3JHN', '2JHN', '1JHN' ]
+# TYPE_WL = ['1JHC', ]
 
 # TARGET_WL = ['fc', 'sd', 'pso', 'dso']
 TARGET_WL = ['scalar_coupling_constant']
@@ -580,8 +581,8 @@ np.random.seed(SEED)
 cv_score = []
 cv_score_total = 0
 epoch_n = 5000
-verbose = 0
-batch_size = 2048
+verbose = 2
+batch_size = 3072
 
 # Set up GPU preferences
 config = tf.ConfigProto(device_count={'GPU': 1, 'CPU': 2})

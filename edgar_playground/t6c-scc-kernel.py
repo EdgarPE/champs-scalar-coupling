@@ -547,7 +547,7 @@ np.random.seed(SEED)
 cv_score = []
 cv_score_total = 0
 epoch_n = 5000
-verbose = 0
+verbose = 2
 batch_size = 2048
 
 # N_FOLD = {
