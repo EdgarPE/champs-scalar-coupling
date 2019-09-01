@@ -847,8 +847,7 @@ WORK_DIR = '../work/t5_v2'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5_v2'
 
-# TYPE_WL = ['3JHC', '2JHC', '1JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
-TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH', '1JHC', '2JHC', '3JHC']
+TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
 
 TARGET_WL = ['scalar_coupling_constant']
 
@@ -856,11 +855,11 @@ SEED = 55
 np.random.seed(SEED)
 
 N_FOLD = {
-    '_': 6,
+    '_': 3,
 }
 
 N_ESTIMATORS = {
-    '_': 12000,
+    '_': 2000,
 }
 
 PARAMS = {
@@ -876,8 +875,8 @@ PARAMS = {
         "bagging_seed": SEED,
         "metric": 'mae',
         "verbosity": -1,
-        'reg_alpha': 0.01,
-        'reg_lambda': 0.05,
+        'reg_alpha': 0.1,
+        'reg_lambda': 0.3,
         'colsample_bytree': 0.4
     },
 }
@@ -950,21 +949,21 @@ for type_name in TYPE_WL:
     gc.collect()
     disp_mem_usage()
 
-    train, test = t5_load_data_mulliken_oof(WORK_DIR, train, test)  # Phase 1. OOF data Mulliken charge
-    gc.collect()
-    disp_mem_usage()
-
-    train, test = t5_load_data_contributions_oof(WORK_DIR, train, test)  # Phase 2. OOF Contributions (fc, sd, pso, dso)
-    gc.collect()
-    disp_mem_usage()
+    # train, test = t5_load_data_mulliken_oof(WORK_DIR, train, test)  # Phase 1. OOF data Mulliken charge
+    # gc.collect()
+    # disp_mem_usage()
+    #
+    # train, test = t5_load_data_contributions_oof(WORK_DIR, train, test)  # Phase 2. OOF Contributions (fc, sd, pso, dso)
+    # gc.collect()
+    # disp_mem_usage()
 
     #
     # Predict final target (Scalar coupling constant)
     #
 
     extra_cols = []
-    extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
-    extra_cols += ['fc', 'sd', 'pso', 'dso', 'contrib_sum']
+    # extra_cols += ['mulliken_charge_0', 'mulliken_charge_1']
+    # extra_cols += ['fc', 'sd', 'pso', 'dso', 'contrib_sum']
     extra_cols += ['qcut_subtype_0', 'qcut_subtype_1', 'qcut_subtype_2']
 
     train, test, y = t5_prepare_columns(train, test, good_columns_extra=extra_cols)
