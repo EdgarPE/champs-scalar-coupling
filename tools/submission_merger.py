@@ -4,7 +4,7 @@ import pandas as pd
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-base_dir = '/home/edgar/uoa/champs-submissions'
+base_dir = '/home/edgarpe/uoa/champs-submissions'
 output_file = '../work/submission_merger.csv'
 
 scc = 'scalar_coupling_constant'
@@ -70,18 +70,26 @@ fnands = pd.read_csv(f'{base_dir}/public_fnands/submission.csv', index_col='id')
 # https://www.kaggle.com/toshik/schnet-starter-kit?scriptVersionId=19040743
 toshik = pd.read_csv(f'{base_dir}/public_toshik/kernel_schnet.csv', index_col='id')
 
+# seed55
+seed55 = pd.read_csv(f'./t5_v2_seed55/t5_scc_v2_train.csv', index_col='id')
+seed55.rename(columns=rename_col, inplace=True)
+
+seed200 = pd.read_csv(f'./t5_v2_seed200/t5_scc_v2_train.csv', index_col='id')
+seed200.rename(columns=rename_col, inplace=True)
 
 # Things to merge
-outs = [ua, kedd, kernel1, filemide, marcogorelli, harshit92, xwxw2929, yamqwe, fnands, toshik]
-
+outs = [seed55, seed200]
 
 
 # result = pd.concat([out['scalar_coupling_constant'] for out in outs], axis=1)
 result = pd.concat(outs, axis=1).median(axis=1)
 
+result = result.reset_index()
+result.columns = ['id', scc]
 print(result)
+result.to_csv(output_file, index=False)
 
-submission_csv[scc] = result
+# submission_csv[scc] = result
+# submission_csv.to_csv(output_file, index=True)
 
-submission_csv.to_csv(output_file, index=True)
 print(output_file)

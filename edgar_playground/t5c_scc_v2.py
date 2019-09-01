@@ -847,11 +847,12 @@ WORK_DIR = '../work/t5_v2'
 # OUTPUT_DIR = '.'
 OUTPUT_DIR = '../work/t5_v2'
 
-TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+# TYPE_WL = ['1JHC', '2JHC', '3JHC', '1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
+TYPE_WL = ['1JHN', '2JHN', '3JHN', '2JHH', '3JHH']
 
 TARGET_WL = ['scalar_coupling_constant']
 
-SEED = 55
+SEED = 200
 np.random.seed(SEED)
 
 N_FOLD = {
@@ -859,7 +860,7 @@ N_FOLD = {
 }
 
 N_ESTIMATORS = {
-    '_': 2000,
+    '_': 4000,
 }
 
 PARAMS = {
