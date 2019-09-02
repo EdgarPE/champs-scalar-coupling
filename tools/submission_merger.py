@@ -4,7 +4,7 @@ import pandas as pd
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-base_dir = '/home/edgarpe/uoa/champs-submissions'
+base_dir = '/home/edgar/uoa/champs-submissions'
 output_file = '../work/submission_merger.csv'
 
 scc = 'scalar_coupling_constant'
@@ -15,21 +15,25 @@ rename_col = {f'oof_{scc}': scc}
 # submission.csv
 submission_csv = pd.read_csv('../input/sample_submission.csv', index_col='id')
 
-# UA  | LB -1.721
+# UA  | LB -1.721 | CV -1.529
 ua = pd.read_csv(f'{base_dir}/t4_ua/t4c_scc_test.csv', index_col='id')
 
 
-# hetfo | LB -1.486
+# hetfo | LB -1.486 | CV -1.718
 hetfo = pd.read_csv(f'{base_dir}/t5_hetfo/t5c_scc_test.csv', index_col='id')
 hetfo.rename(columns=rename_col, inplace=True)
 
 
-# kedd | LB -1.514
+# kedd | LB -1.514 | CV -1.741
 kedd = pd.read_csv(f'{base_dir}/t5_v2_kedd/t5_scc_v2_test.csv', index_col='id')
 kedd.rename(columns=rename_col, inplace=True)
 
 
-# kernel1 | LB -1.717
+# szerda | LB -1.516 | CV -1.761
+szerda = pd.read_csv(f'{base_dir}/t5_v2_szerda/t5_scc_v2_submission.csv', index_col='id')
+
+
+# kernel1 | LB -1.717 | CV -1.658
 kernel1 = pd.read_csv(f'{base_dir}/kernel1/t6c_scc_kernel_1_717.csv', index_col='id')
 
 
@@ -78,7 +82,7 @@ seed200 = pd.read_csv(f'./t5_v2_seed200/t5_scc_v2_train.csv', index_col='id')
 seed200.rename(columns=rename_col, inplace=True)
 
 # Things to merge
-outs = [seed55, seed200]
+outs = [ua, kedd, kernel1, yamqwe, fnands, toshik]
 
 
 # result = pd.concat([out['scalar_coupling_constant'] for out in outs], axis=1)
@@ -92,4 +96,5 @@ result.to_csv(output_file, index=False)
 # submission_csv[scc] = result
 # submission_csv.to_csv(output_file, index=True)
 
+submission_csv.to_csv(output_file, index=True)
 print(output_file)
